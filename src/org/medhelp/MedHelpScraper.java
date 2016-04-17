@@ -727,7 +727,7 @@ public class MedHelpScraper extends Thread {
 
                                 Boolean isAdded = Boolean.FALSE;
                                 if(commentPagesNumber>1){
-                                    chromeDriver.navigate().to(thread.threadLink+"?page="+1);
+                                    chromeDriver.navigate().to(thread.threadLink+"?page="+commentPagesNumber);
                                     threadData = chromeDriver.findElements(By.className("post_entry"));
                                     isAdded = commentPagesData.addAll(chromeDriver.findElements(By.className("post_entry")));
 
