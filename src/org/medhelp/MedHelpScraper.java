@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
  */
 
 
-public class MedHelpScraper extends Thread {
+public class MedHelpScraper extends Thread{
 
     public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
@@ -43,7 +43,6 @@ public class MedHelpScraper extends Thread {
         chrome.addExtensions(addonpath);
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
 
-//
 
 //        FirefoxProfile firefoxprofile = new FirefoxProfile();
 //        File addonpath = new File(dir+"/Selenium/adblock_plus-2.7.1.xpi");
@@ -77,15 +76,16 @@ public class MedHelpScraper extends Thread {
 
         System.out.println("Gathering data ...\n");
 
+
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         List<String> forumList = new ArrayList<String>();
-//        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
+        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
 //        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
-        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
+//        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
 
         //Depression
@@ -97,9 +97,8 @@ public class MedHelpScraper extends Thread {
         //Heart Disease
 
 
-
         WebDriver chromeDriver = chromeDriverGen;
-        chromeDriver.navigate().to("http://wikipedia.com/");
+        chromeDriver.navigate().to("http://disney.com/");
 
         for (String forumlink: forumList) {
 
@@ -295,8 +294,8 @@ public class MedHelpScraper extends Thread {
                 // The first run in file "Threads1.csv" has data for all of the 29 pages. About 576 Threads
                 pageNumber++;
 
-//            } while (pageNumber < 3);
-            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
+            } while (pageNumber < 3);
+//            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
 //        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
 
             chromeDriver.close();
@@ -309,7 +308,7 @@ public class MedHelpScraper extends Thread {
 
             userList = scrapeThreads(threadList, userList);
 
-            userList = scrapeUsers(userList);
+//            userList = scrapeUsers(userList);
 
 
 //        System.out.println("*************USERSCRAPE :NEW USER LIST **************");
@@ -317,19 +316,19 @@ public class MedHelpScraper extends Thread {
 //            System.out.println(user.userName + ",");
 //        }
 
-//        userList = createUserListFromFile(dir+"/UsersComplete-3rd-Half.csv");
+//        userList = createUserListFromFile(dir+"/UsersComplete-2016-04-17-Heart-Disease.csv");
 
             System.out.println("userList size after thread scrape : " + userList.size());
 
 
-            userList = scrapeNotes(userList);
+//            userList = scrapeNotes(userList);
 
 //        System.out.println("*************NOTESCRAPE :NEW USER LIST **************");
 //        for (User user: userList){
 //            System.out.println(user.userName + ",");
 //        }
 
-            System.out.println("userList size after notes scrape : " + userList.size());
+            System.out.println("\n\nuserList size after notes scrape : " + userList.size());
 
 
             userList = scrapePosts(userList);
@@ -865,6 +864,7 @@ public class MedHelpScraper extends Thread {
         chromeDriver.manage().deleteAllCookies();
 
 
+
 //        WebDriver chromeDriver = new FirefoxDriver();
         try{
 
@@ -932,6 +932,9 @@ public class MedHelpScraper extends Thread {
                     userPageIdData = chromeDriver.findElements(By.className("pp_r_txt_sel"));
                     userInfoData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'bottom float_fix')]//div[contains(@class,'section')]"));
 
+
+                    //<a href="/personal_pages/show/5307146?personal_page_id=5307146">Profile</a>
+
                     userNameInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userNameData.get(0));
                     userIds = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userPageIdData.get(0));
                     userInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userInfoData.get(0));
@@ -941,7 +944,7 @@ public class MedHelpScraper extends Thread {
                     Matcher matcher = userPageIdPattern.matcher(userIds);
                     matcher.find();
                     String userPageId = matcher.group(1);
-                    System.out.println(userPageId);
+                    System.out.println("userPageId: " + userPageId);
                     user.setPageId(Integer.valueOf(userPageId));
 
 
@@ -952,7 +955,7 @@ public class MedHelpScraper extends Thread {
                     String userGender = matcher.group(1);
                     String gender[] = userGender.split(" ", 2);
                     userGender = gender[0];
-                    System.out.println(userGender.replace(",",""));
+                    System.out.println("userGender: " + userGender.replace(",",""));
                     user.setGender(userGender);
 
                     // Extracting user date joined.
@@ -960,7 +963,7 @@ public class MedHelpScraper extends Thread {
                     matcher = userDateJoinedPattern.matcher(userInfo);
                     matcher.find();
                     String userDateJoined = matcher.group(1);
-                    System.out.println(userDateJoined.trim());
+                    System.out.println("DateJoined: " + userDateJoined.trim());
                     user.setDateJoined(userDateJoined.trim());
 
 
@@ -968,7 +971,8 @@ public class MedHelpScraper extends Thread {
                     System.out.println("\n\n\t\t\t\t**************** Staring to parse user number " + index + ": " + user.getUserName() + "'s friends list ... **************** \n\n");
 
 //                chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber + "&personal_page_id=" + user.getPageId() );
-                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
+//                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
+                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId());
                     chromeDriver.manage().deleteAllCookies();
 
                     // Check if user has any friends ?
@@ -1163,7 +1167,7 @@ public class MedHelpScraper extends Thread {
 
             List<Note> notesList = new ArrayList<Note>();
 
-            System.out.println("\n\n" + user.userName + " with link " + "http://www.medhelp.org/notes/list/" + user.getUniqueId() +"?page=" + pageNumber);
+            System.out.println("\n\n User number: " + userList.indexOf(user)+ " and User name: " + user.userName + " with link " + "http://www.medhelp.org/notes/list/" + user.getUniqueId() +"?page=" + pageNumber);
 
             try{
 
@@ -1547,7 +1551,7 @@ public class MedHelpScraper extends Thread {
             postsList = new ArrayList<Post>();
 
 //            System.out.println("\n\n" + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber + "&personal_page_id=" + user.getPageId());
-            System.out.println("\n\n" + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber);
+            System.out.println("\n\n User number: " + userList.indexOf(user)+ " and User name: " + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber);
 
             try{
 
@@ -1603,7 +1607,8 @@ public class MedHelpScraper extends Thread {
 
 
                         // Extracting date note was left.
-                        Pattern postDatePattern = Pattern.compile("<span class=\"date\">(.+?) in the<\\/span>");
+//                        Pattern postDatePattern = Pattern.compile("<span class=\"date\">(.+?) in the<\\/span>");
+                        Pattern postDatePattern = Pattern.compile("<div class=\"time\">(.+?)<\\/div>");
                         matcher = postDatePattern.matcher(postEntryInfo);
                         matcher.find();
                         String postDate = matcher.group(1);
@@ -1651,7 +1656,7 @@ public class MedHelpScraper extends Thread {
 
             }catch (Exception e) {
                 System.err.println("Caught Exception: " + e.getMessage());
-//                continue;
+                continue;
             }
 
             System.out.println("User :" + user.getUserName() + " has " + user.userPosts.size() + "\n\n");
@@ -1665,6 +1670,56 @@ public class MedHelpScraper extends Thread {
 
         return userList;
     }
+
+
+
+
+
+
+
+
+
+
+
+    public static List<User> buildUserList(){
+
+        List<User> userList = new ArrayList<User>();
+
+
+        // ***
+        userList = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/UsersComplete-2016-04-17-Heart-Disease.csv");
+
+        System.out.println("userList size after thread scrape : " + userList.size());
+
+        userList = scrapeUsers(userList);
+
+        userList = scrapeNotes(userList);
+
+//        System.out.println("*************NOTESCRAPE :NEW USER LIST **************");
+//        for (User user: userList){
+//            System.out.println(user.userName + ",");
+//        }
+
+        System.out.println("userList size after notes scrape : " + userList.size());
+
+
+        userList = scrapePosts(userList);
+
+//        System.out.println("*************POSTCRAPE :NEW USER LIST **************");
+//        for (User user: userList){
+//            System.out.println(user.userName + ",");
+//        }
+
+        System.out.println("userList size after posts scrape : " + userList.size());
+
+
+        userList = scrapeFriends(userList);
+
+// ***
+        return userList;
+
+    }
+
 
 }
 

@@ -9,7 +9,7 @@ public class CollectData {
 
 //        ItunesStoreScraper.main(args);
 
-        AppStoreScraper.main(args);
+//        AppStoreScraper.main(args);
 
         AmazonAppScraper.main(args);
 

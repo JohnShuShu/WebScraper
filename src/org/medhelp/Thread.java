@@ -162,6 +162,8 @@ public class Thread {
                   threadLink+ ", " +
                   dateCreated.replace(",","")+ ", " +
                   threadCreator.userName.replace(",","")+ ", " +
+                  threadCreator.getUniqueId()+  ", " +
+                  threadCreator.getPageId()+  ", " +
                   threadCreatorLink+  ", " +
                   threadNumber+  ", " +
                   commentsNumber+ ", " +
