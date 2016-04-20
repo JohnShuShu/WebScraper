@@ -1514,7 +1514,7 @@ public class MedHelpScraper extends Thread{
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
-        chromeDriver.navigate().to("http://wikipedia.com/");
+        chromeDriver.navigate().to("http://disney.com/");
         chromeDriver.manage().deleteAllCookies();
 
 
@@ -1593,6 +1593,7 @@ public class MedHelpScraper extends Thread{
 
                         postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
                         postEntryInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", postEntryData.get(i));
+                        postEntryInfo = postEntryInfo.replace("\t","").replace("\n","").trim();
 
                         // New note object
                         Post post = new Post();
@@ -1601,7 +1602,7 @@ public class MedHelpScraper extends Thread{
                         Pattern postNamePattern = Pattern.compile("<a href=\"\\/posts\\/.+?\">(.+?)<\\/a>");
                         Matcher matcher = postNamePattern.matcher(postEntryInfo);
                         matcher.find();
-                        String postName = matcher.group(1);
+                        String postName = matcher.group(1).trim();
                         System.out.println(postName);
                         post.setPostName(postName);
 
@@ -1611,7 +1612,7 @@ public class MedHelpScraper extends Thread{
                         Pattern postDatePattern = Pattern.compile("<div class=\"time\">(.+?)<\\/div>");
                         matcher = postDatePattern.matcher(postEntryInfo);
                         matcher.find();
-                        String postDate = matcher.group(1);
+                        String postDate = matcher.group(1).replace(",","").trim();
                         System.out.println(postDate);
                         post.setPostDate(postDate);
 
