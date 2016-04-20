@@ -1527,7 +1527,7 @@ public class MedHelpScraper extends Thread{
 
         // WebElement from Selenium
         List<WebElement> postEntryData;
-        List<WebElement> paginationNumber;
+        Integer paginationNumber;
         List<Post> postsList;
 
 
@@ -1551,7 +1551,7 @@ public class MedHelpScraper extends Thread{
             postsList = new ArrayList<Post>();
 
 //            System.out.println("\n\n" + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber + "&personal_page_id=" + user.getPageId());
-            System.out.println("\n\n User number: " + userList.indexOf(user)+ " and User name: " + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber);
+            System.out.println("\n\nUser number: " + userList.indexOf(user)+ " and User name: " + user.userName + " with link " + "http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber);
 
             try{
 
@@ -1565,13 +1565,30 @@ public class MedHelpScraper extends Thread{
                 chromeDriver.manage().deleteAllCookies();
 
                 // Gathering data on comments for this particular thread
-                postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
+//                postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
+                postEntryData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'stats')]")); // postEntryData.size() # of post
+                String numberOfPosts = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", postEntryData.get(0));
+
+                // Extract post number
+                if(numberOfPosts.contains("of")){
+                    numberOfPosts = numberOfPosts.replace("-","").replace("of","").replace("(","").replace(")","").replace("posts","").replace("post","").trim();
+                    String arr[] = numberOfPosts.split("  ");
+                    numberOfPosts = arr[2];
+
+                } else {
+                    numberOfPosts = numberOfPosts.replace("posts","").replace("post","").trim();
+                }
+
+                Integer pagination = Integer.parseInt(numberOfPosts);
+                paginationNumber = (pagination / 10) + (pagination % 10);
+                System.out.println("Total number of pages: " + numberOfPosts);
+                System.out.println("Total number of posts: " + numberOfPosts);
                 System.out.println("Number of posts on 1st page: " + postEntryData.size());
 
 
                 // Check if friends list spans multiple pages
-                paginationNumber = chromeDriver.findElements(By.xpath("//a[starts-with(@class, 'msg')]")); // # of pages
-                System.out.println(paginationNumber.size() + " pages of posts");
+//                paginationNumber = chromeDriver.findElements(By.xpath("//a[contains(@class, 'page_nav')]")); // # of pages
+                System.out.println(paginationNumber + " pages of posts");
 
 
 
@@ -1632,7 +1649,7 @@ public class MedHelpScraper extends Thread{
 
                     pageNumber++;
 
-                }while (pageNumber < (paginationNumber.size()+1));
+                }while (pageNumber < (paginationNumber+1));
 
                 user.setUserPosts(postsList);
 
@@ -1644,7 +1661,7 @@ public class MedHelpScraper extends Thread{
                     postFileText = postFileText + " , , " + post.printToFile();
                 }
 
-                System.out.println("Writing post data to the file");
+                System.out.println("Writing post data to the file... " + user.getUserName()  + ", and size" + postsList.size() );
 
                 // Get file and write user friends to the file
                 BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file.getAbsoluteFile(), true));
