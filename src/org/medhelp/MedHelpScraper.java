@@ -1580,8 +1580,15 @@ public class MedHelpScraper extends Thread{
                 }
 
                 Integer pagination = Integer.parseInt(numberOfPosts);
-                paginationNumber = (pagination / 10) + (pagination % 10);
-                System.out.println("Total number of pages: " + numberOfPosts);
+
+                if(pagination>10){
+                    paginationNumber = (pagination / 10) + (pagination % 10);
+
+                }else{
+                    paginationNumber = 1;
+                }
+
+                System.out.println("Total number of pages: " + paginationNumber);
                 System.out.println("Total number of posts: " + numberOfPosts);
                 System.out.println("Number of posts on 1st page: " + postEntryData.size());
 
@@ -1604,9 +1611,12 @@ public class MedHelpScraper extends Thread{
                     chromeDriver.navigate().to("http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + pageNumber);
                     chromeDriver.manage().deleteAllCookies();
 
+                    postEntryData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'user_post')]")); // postEntryData.size() # of post on that page.
+                    Integer postPerPage = postEntryData.size();
+
                     // Loop to find all the friends
 
-                    for ( int i=0; i < postEntryData.size(); i++){
+                    for ( int i=0; i < postPerPage; i++){
 
                         postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
                         postEntryInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", postEntryData.get(i));
@@ -1649,7 +1659,8 @@ public class MedHelpScraper extends Thread{
 
                     pageNumber++;
 
-                }while (pageNumber < (paginationNumber+1));
+                }
+                while (pageNumber < (paginationNumber+1));
 
                 user.setUserPosts(postsList);
 
