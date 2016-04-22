@@ -79,11 +79,11 @@ public class MedHelpScraper extends Thread{
 
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         List<String> forumList = new ArrayList<String>();
-        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
+//        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
-//        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
+        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
 //        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
@@ -294,7 +294,7 @@ public class MedHelpScraper extends Thread{
                 // The first run in file "Threads1.csv" has data for all of the 29 pages. About 576 Threads
                 pageNumber++;
 
-            } while (pageNumber < 3);
+            } while (pageNumber < 11);
 //            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
 //        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
 
@@ -308,7 +308,7 @@ public class MedHelpScraper extends Thread{
 
             userList = scrapeThreads(threadList, userList);
 
-//            userList = scrapeUsers(userList);
+            userList = scrapeUsers(userList);
 
 
 //        System.out.println("*************USERSCRAPE :NEW USER LIST **************");
@@ -321,7 +321,7 @@ public class MedHelpScraper extends Thread{
             System.out.println("userList size after thread scrape : " + userList.size());
 
 
-//            userList = scrapeNotes(userList);
+            userList = scrapeNotes(userList);
 
 //        System.out.println("*************NOTESCRAPE :NEW USER LIST **************");
 //        for (User user: userList){
@@ -546,7 +546,7 @@ public class MedHelpScraper extends Thread{
         chrome.addExtensions(addonpath);
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
         WebDriver chromeDriver = chromeDriverGen;
-        chromeDriver.navigate().to("http://wikipedia.com/");
+        chromeDriver.navigate().to("http://disney.com/");
         chromeDriver.manage().deleteAllCookies();
 
 //        WebDriver chromeDriver = new FirefoxDriver();
@@ -722,10 +722,10 @@ public class MedHelpScraper extends Thread{
 
                             // After all comments have been collected. Move to the next page
                             // and collect the rest of the comment information.
-                            if( commentPagesNumber>1 && (i+1) == threadData.size()){
+                            if( commentPagesNumber>0 && (i+1) == threadData.size()){
 
                                 Boolean isAdded = Boolean.FALSE;
-                                if(commentPagesNumber>1){
+                                if(commentPagesNumber>0){
                                     chromeDriver.navigate().to(thread.threadLink+"?page="+commentPagesNumber);
                                     threadData = chromeDriver.findElements(By.className("post_entry"));
                                     isAdded = commentPagesData.addAll(chromeDriver.findElements(By.className("post_entry")));
@@ -785,10 +785,10 @@ public class MedHelpScraper extends Thread{
                             threadCommentors.add(commentor);
 
                             // Add user to list of users.
-                            if (!doesUserExist(userList, commentor)){
-                                System.out.println("Adding new User");
-                                userList.add(commentor);
-                            }
+//                            if (!doesUserExist(userList, commentor)){
+//                                System.out.println("Adding new User");
+//                                userList.add(commentor);
+//                            }
 
                         }
                     }
@@ -860,7 +860,7 @@ public class MedHelpScraper extends Thread{
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
-        chromeDriver.navigate().to("http://wikipedia.com/");
+        chromeDriver.navigate().to("http://disney.com/");
         chromeDriver.manage().deleteAllCookies();
 
 
@@ -932,8 +932,6 @@ public class MedHelpScraper extends Thread{
                     userPageIdData = chromeDriver.findElements(By.className("pp_r_txt_sel"));
                     userInfoData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'bottom float_fix')]//div[contains(@class,'section')]"));
 
-
-                    //<a href="/personal_pages/show/5307146?personal_page_id=5307146">Profile</a>
 
                     userNameInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userNameData.get(0));
                     userIds = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userPageIdData.get(0));
@@ -1037,10 +1035,10 @@ public class MedHelpScraper extends Thread{
                             // Add user to Set of Friends.
                             friendList.add(friend);
 
-                            if (!doesUserExist(completeUsersList, friend)){
-                                System.out.println("Adding new User ...");
-                                completeUsersList.add(friend); // *************************** REPLACE WITH friend
-                            }
+//                            if (!doesUserExist(completeUsersList, friend)){
+//                                System.out.println("Adding new User ...");
+//                                completeUsersList.add(friend); // *************************** REPLACE WITH friend
+//                            }
                         }
 
                         pageNumber++;
