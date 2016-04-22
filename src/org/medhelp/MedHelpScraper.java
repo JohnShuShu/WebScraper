@@ -294,8 +294,8 @@ public class MedHelpScraper extends Thread{
                 // The first run in file "Threads1.csv" has data for all of the 29 pages. About 576 Threads
                 pageNumber++;
 
-            } while (pageNumber < 11);
-//            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
+//            } while (pageNumber < 11);
+            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
 //        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
 
             chromeDriver.close();
