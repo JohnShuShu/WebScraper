@@ -29,16 +29,18 @@ import java.util.regex.Pattern;
 
 public class MedHelpScraper extends Thread{
 
-    public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
+    public static String dir = "C:\\Users\\John\\Desktop\\WebScraperMac"; // General directory root **** Be sure to CHANGE *****
 
     public static String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
     public static String timeStamp = dateString;
 
+    public static String forumName = "";
+
     public static void main(String[] args)  throws Exception {
 
-        System.setProperty("webdriver.chrome.driver", dir + "/Selenium/chromedriver");
-        File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
@@ -80,12 +82,12 @@ public class MedHelpScraper extends Thread{
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         List<String> forumList = new ArrayList<String>();
         forumList.add("http://www.medhelp.org/forums/Depression/show/57");
-//        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
-//        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
-//        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
+        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
+        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
+        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
         forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
-//        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
-//        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
+        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
+        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
 
         //Depression
@@ -123,7 +125,6 @@ public class MedHelpScraper extends Thread{
                 // no more data i.e. threads.
 
                 chromeDriver = chromeDriverGen;
-                chromeDriver.manage().deleteAllCookies();
                 chromeDriver.manage().deleteAllCookies();
                 chromeDriver.navigate().to(forumlink + "?page=" + pageNumber);
 
@@ -294,7 +295,7 @@ public class MedHelpScraper extends Thread{
                 // The first run in file "Threads1.csv" has data for all of the 29 pages. About 576 Threads
                 pageNumber++;
 
-//            } while (pageNumber < 11);
+//            } while (pageNumber < 2);
             }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
 //        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
 
@@ -539,8 +540,8 @@ public class MedHelpScraper extends Thread{
 //                firefoxprofile.addExtension(addonpath);
 //                chromeDriver = new FirefoxDriver(firefoxprofile);
 
-        System.setProperty("webdriver.chrome.driver", dir+"/Selenium/chromedriver");
-        File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
@@ -750,7 +751,7 @@ public class MedHelpScraper extends Thread{
                             matcher = threadCommentorsPattern.matcher(threadCommentorsData);
                             matcher.find();
                             String commentorName = matcher.group(1);
-                            System.out.println(commentorName);
+                            System.out.print(commentorName + ", ");
                             commentor.setUserName(commentorName);
 
 
@@ -760,7 +761,7 @@ public class MedHelpScraper extends Thread{
                             matcher.find();
                             String threadCommentorLink = matcher.group(1);
                             threadCommentorLink = "http://www.medhelp.org" + threadCommentorLink;
-                            System.out.println(threadCommentorLink);
+                            System.out.print(threadCommentorLink + ", ");
                             commentor.setUserPageLink(threadCommentorLink);
 
                             // Extracting user unique Id.
@@ -854,8 +855,8 @@ public class MedHelpScraper extends Thread{
 
         System.out.println("\n\n********************************** IN USER/FRIENDS FUNCTION ***************************************");
 
-        System.setProperty("webdriver.chrome.driver", dir+"/Selenium/chromedriver");
-        File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
@@ -1002,7 +1003,7 @@ public class MedHelpScraper extends Thread{
                             matcher = friendNamePattern.matcher(friendsData);
                             matcher.find();
                             String friendName = matcher.group(1);
-                            System.out.println(friendName);
+                            System.out.print(friendName + ", ");
                             friend.setUserName(friendName);
 
                             // Extract Friend page Links
@@ -1011,7 +1012,7 @@ public class MedHelpScraper extends Thread{
                             matcher.find();
                             String friendPageLink = matcher.group(1);
                             friendPageLink = "http://www.medhelp.org" + friendPageLink;
-                            System.out.println(friendPageLink);
+                            System.out.print(friendPageLink + ", ");
                             friend.setUserPageLink(friendPageLink);
 
                             // Extracting Friend unique Id.
@@ -1127,8 +1128,8 @@ public class MedHelpScraper extends Thread{
         System.out.println("\n\n********************************** IN NOTES FUNCTION ***************************************");
 
 
-        System.setProperty("webdriver.chrome.driver", dir+"/Selenium/chromedriver");
-        File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
@@ -1221,7 +1222,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = authorNamePattern.matcher(noteEntryInfo);
                         matcher.find();
                         String authorName = matcher.group(1);
-                        System.out.println(authorName);
+                        System.out.print(authorName + ", ");
                         note.setNoteOriginator(authorName);
 
 
@@ -1314,8 +1315,8 @@ public class MedHelpScraper extends Thread{
 
         System.out.println("\n\n********************************** IN FRIENDS FUNCTION ***************************************");
 
-        System.setProperty("webdriver.chrome.driver", dir+"/Selenium/chromedriver");
-        File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
@@ -1409,7 +1410,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = friendNamePattern.matcher(friendEntryInfo);
                         matcher.find();
                         String friendName = matcher.group(1);
-                        System.out.println(friendName);
+                        System.out.print(friendName + ", ");
                         friend.setUserName(friendName);
 
                         // Extract Friend page Links
@@ -1418,7 +1419,7 @@ public class MedHelpScraper extends Thread{
                         matcher.find();
                         String friendPageLink = matcher.group(1);
                         friendPageLink = "http://www.medhelp.org" + friendPageLink;
-                        System.out.println(friendPageLink);
+                        System.out.print(friendPageLink + ", ");
                         friend.setUserPageLink(friendPageLink);
 
                         // Extracting Friend unique Id.
@@ -1515,8 +1516,8 @@ public class MedHelpScraper extends Thread{
 
         System.out.println("\n\n********************************** IN POST FUNCTION ***************************************");
 
-        System.setProperty("webdriver.chrome.driver", dir+"/Selenium/chromedriver");
-        File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
+        System.setProperty("webdriver.chrome.driver", dir + "\\Selenium\\chromedriver.exe");
+        File addonpath = new File(dir + "\\Selenium\\AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
@@ -1661,7 +1662,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = postNamePattern.matcher(postEntryInfo);
                         matcher.find();
                         String postName = matcher.group(1).trim();
-                        System.out.println(postName);
+                        System.out.print(postName + ", ");
                         post.setPostName(postName);
 
 
@@ -1671,7 +1672,7 @@ public class MedHelpScraper extends Thread{
                         matcher = postDatePattern.matcher(postEntryInfo);
                         matcher.find();
                         String postDate = matcher.group(1).replace(",","").trim();
-                        System.out.println(postDate);
+                        System.out.print(postDate + ", ");
                         post.setPostDate(postDate);
 
 
@@ -1724,7 +1725,7 @@ public class MedHelpScraper extends Thread{
 
         }
 
-
+//
         chromeDriver.close();
         chromeDriver.quit();
 
