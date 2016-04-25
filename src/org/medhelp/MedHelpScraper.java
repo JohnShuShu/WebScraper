@@ -79,7 +79,7 @@ public class MedHelpScraper extends Thread{
 
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         List<String> forumList = new ArrayList<String>();
-//        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
+        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
@@ -298,8 +298,6 @@ public class MedHelpScraper extends Thread{
             }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
 //        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
 
-            chromeDriver.close();
-            chromeDriver.quit();
 
             //******************************* END OF PAGE SCRAPPING FOR THREADS ************************************************//
 
@@ -381,7 +379,8 @@ public class MedHelpScraper extends Thread{
 
         }
 
-
+        chromeDriver.close();
+        chromeDriver.quit();
 
     }
 
@@ -1302,6 +1301,15 @@ public class MedHelpScraper extends Thread{
 
 
 
+
+
+
+
+
+
+
+
+
     public static List<User> scrapeFriends(List<User> userList){
 
         System.out.println("\n\n********************************** IN FRIENDS FUNCTION ***************************************");
@@ -1525,6 +1533,7 @@ public class MedHelpScraper extends Thread{
 
         // WebElement from Selenium
         List<WebElement> postEntryData;
+        List<WebElement> postPagesData = new ArrayList<WebElement>();
         Integer paginationNumber;
         List<Post> postsList;
 
@@ -1545,6 +1554,9 @@ public class MedHelpScraper extends Thread{
         for(User user: userList){
 
             Integer pageNumber = 1;
+            String postsNumber = "";
+            Integer postPagesNumber = 0;
+
 
             postsList = new ArrayList<Post>();
 
@@ -1594,7 +1606,7 @@ public class MedHelpScraper extends Thread{
                 // Check if friends list spans multiple pages
 //                paginationNumber = chromeDriver.findElements(By.xpath("//a[contains(@class, 'page_nav')]")); // # of pages
                 System.out.println(paginationNumber + " pages of posts");
-
+                postPagesNumber = pageNumber;
 
 
                 //******************************* OBTAIN NOTES DATA ************************************************//
@@ -1616,7 +1628,28 @@ public class MedHelpScraper extends Thread{
 
                     for ( int i=0; i < postPerPage; i++){
 
-                        postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
+
+                        // After all comments have been collected. Move to the next page
+                        // and collect the rest of the comment information.
+                        if( postPagesNumber < paginationNumber && (i+1) == postPerPage){
+
+                            postPagesNumber++;
+
+                            Boolean isAdded = Boolean.FALSE;
+//                            if(postPagesNumber < paginationNumber){
+                                chromeDriver.navigate().to("http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + postPagesNumber);
+                                postEntryData = chromeDriver.findElements(By.className("user_post"));
+                                isAdded = postPagesData.addAll(chromeDriver.findElements(By.className("user_post")));
+
+//                                if(!isAdded){
+//                                    postEntryData = chromeDriver.findElements(By.className("question_by"));
+//                                }
+                                i = 0;
+//                            }
+
+                        }
+
+//                        postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
                         postEntryInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", postEntryData.get(i));
                         postEntryInfo = postEntryInfo.replace("\t","").replace("\n","").trim();
 
