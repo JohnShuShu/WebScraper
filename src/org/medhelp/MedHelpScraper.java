@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.remote.server.SystemClock;
 
 
 import java.io.*;
@@ -29,11 +30,13 @@ import java.util.regex.Pattern;
 
 public class MedHelpScraper extends Thread{
 
-    public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
+    public static String dir = "/Users/lucyshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
     public static String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
     public static String timeStamp = dateString;
+
+    public static String forumName = "";
 
     public static void main(String[] args)  throws Exception {
 
@@ -59,6 +62,9 @@ public class MedHelpScraper extends Thread{
         // Number of threads parsed
         Integer threadNumber=0;
 
+        // Total number of threads in forum
+        Integer totalThreads=0;
+
         // WebElement from Selenium
         List<WebElement> newSubjectElement;
 
@@ -69,7 +75,7 @@ public class MedHelpScraper extends Thread{
         // List<User> threadCommentors;
         List<User> threadCommentors = new ArrayList<User>();
 
-
+        List<WebElement> totalThreadsData = new ArrayList<WebElement>();
         // List of all users both commentors and thread creators. Use Hash set for anything dealing with Users instead to avoid duplicates
         // List<User> userList = new ArrayList<User>();
         List<User> userList = new ArrayList<User>();
@@ -82,8 +88,9 @@ public class MedHelpScraper extends Thread{
 //        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
-//        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
-        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
+        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
+        forumList.add("http://www.medhelp.org/forums/General-Health/show/164");
+//        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
 //        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
@@ -98,7 +105,6 @@ public class MedHelpScraper extends Thread{
 
 
         WebDriver chromeDriver = chromeDriverGen;
-        chromeDriver.navigate().to("http://disney.com/");
 
         for (String forumlink: forumList) {
 
@@ -108,6 +114,43 @@ public class MedHelpScraper extends Thread{
 
             threadList = new ArrayList<Thread>();
             threadCommentors = new ArrayList<User>();
+
+//            commentPagesData = chromeDriver.findElements(By.xpath("//a[contains(@class, 'page_nav')]"));
+
+            ChromeDriver ThreadTotalDriver = new ChromeDriver();
+            do {
+                ThreadTotalDriver = new ChromeDriver();
+                ThreadTotalDriver.navigate().to(forumlink);
+                try{
+                    totalThreadsData = ThreadTotalDriver.findElements(By.xpath("//span[contains(@class, 'forum_subject_count p')]"));
+
+                if(totalThreadsData.size()<1){
+                    ThreadTotalDriver.close();
+                    ThreadTotalDriver.quit();
+                } else {
+                    // Extract information about Forum size now. i.e. number of pages.
+                    String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
+
+                    if(totalThreadsInfo.contains("of")) {
+                        totalThreadsInfo.replace("<span>.*?<\\/span>","");
+                        totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
+                        String arr[] = totalThreadsInfo.split("  ");
+                        totalThreads = Integer.parseInt(arr[2]);
+                        if(totalThreads>0){
+                            totalThreads = (totalThreads/21) + (totalThreads % 21);
+                        }
+                    }
+                }
+
+                }catch (Exception e){
+                    continue;
+                }
+
+            }while(totalThreadsData.size()<1); // Number of pages in Forum should be more than 10. At least 100 maybe.
+
+            ThreadTotalDriver.close();
+            ThreadTotalDriver.quit();
+
 
             String forumName = forumlink.substring(30).replaceAll("/show/\\d+","");
 
@@ -123,7 +166,6 @@ public class MedHelpScraper extends Thread{
                 // no more data i.e. threads.
 
                 chromeDriver = chromeDriverGen;
-                chromeDriver.manage().deleteAllCookies();
                 chromeDriver.manage().deleteAllCookies();
                 chromeDriver.navigate().to(forumlink + "?page=" + pageNumber);
 
@@ -295,11 +337,9 @@ public class MedHelpScraper extends Thread{
                 pageNumber++;
 
 //            } while (pageNumber < 11);
-            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
-//        } while(pageNumber < 3 | !(newSubjectElement.isEmpty())  );
+//            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
+        } while(pageNumber < totalThreads  );
 
-            chromeDriver.close();
-            chromeDriver.quit();
 
             //******************************* END OF PAGE SCRAPPING FOR THREADS ************************************************//
 
@@ -381,7 +421,8 @@ public class MedHelpScraper extends Thread{
 
         }
 
-
+        chromeDriver.close();
+        chromeDriver.quit();
 
     }
 
@@ -751,7 +792,7 @@ public class MedHelpScraper extends Thread{
                             matcher = threadCommentorsPattern.matcher(threadCommentorsData);
                             matcher.find();
                             String commentorName = matcher.group(1);
-                            System.out.println(commentorName);
+                            System.out.print(commentorName + ", ");
                             commentor.setUserName(commentorName);
 
 
@@ -761,7 +802,7 @@ public class MedHelpScraper extends Thread{
                             matcher.find();
                             String threadCommentorLink = matcher.group(1);
                             threadCommentorLink = "http://www.medhelp.org" + threadCommentorLink;
-                            System.out.println(threadCommentorLink);
+                            System.out.print(threadCommentorLink + ", ");
                             commentor.setUserPageLink(threadCommentorLink);
 
                             // Extracting user unique Id.
@@ -1003,7 +1044,7 @@ public class MedHelpScraper extends Thread{
                             matcher = friendNamePattern.matcher(friendsData);
                             matcher.find();
                             String friendName = matcher.group(1);
-                            System.out.println(friendName);
+                            System.out.print(friendName + ", ");
                             friend.setUserName(friendName);
 
                             // Extract Friend page Links
@@ -1012,7 +1053,7 @@ public class MedHelpScraper extends Thread{
                             matcher.find();
                             String friendPageLink = matcher.group(1);
                             friendPageLink = "http://www.medhelp.org" + friendPageLink;
-                            System.out.println(friendPageLink);
+                            System.out.print(friendPageLink + ", ");
                             friend.setUserPageLink(friendPageLink);
 
                             // Extracting Friend unique Id.
@@ -1222,7 +1263,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = authorNamePattern.matcher(noteEntryInfo);
                         matcher.find();
                         String authorName = matcher.group(1);
-                        System.out.println(authorName);
+                        System.out.print(authorName + ", ");
                         note.setNoteOriginator(authorName);
 
 
@@ -1298,6 +1339,15 @@ public class MedHelpScraper extends Thread{
 
         return userList;
     }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1401,7 +1451,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = friendNamePattern.matcher(friendEntryInfo);
                         matcher.find();
                         String friendName = matcher.group(1);
-                        System.out.println(friendName);
+                        System.out.print(friendName + ", ");
                         friend.setUserName(friendName);
 
                         // Extract Friend page Links
@@ -1410,7 +1460,7 @@ public class MedHelpScraper extends Thread{
                         matcher.find();
                         String friendPageLink = matcher.group(1);
                         friendPageLink = "http://www.medhelp.org" + friendPageLink;
-                        System.out.println(friendPageLink);
+                        System.out.print(friendPageLink + ", ");
                         friend.setUserPageLink(friendPageLink);
 
                         // Extracting Friend unique Id.
@@ -1525,6 +1575,7 @@ public class MedHelpScraper extends Thread{
 
         // WebElement from Selenium
         List<WebElement> postEntryData;
+        List<WebElement> postPagesData = new ArrayList<WebElement>();
         Integer paginationNumber;
         List<Post> postsList;
 
@@ -1545,6 +1596,9 @@ public class MedHelpScraper extends Thread{
         for(User user: userList){
 
             Integer pageNumber = 1;
+            String postsNumber = "";
+            Integer postPagesNumber = 0;
+
 
             postsList = new ArrayList<Post>();
 
@@ -1594,7 +1648,7 @@ public class MedHelpScraper extends Thread{
                 // Check if friends list spans multiple pages
 //                paginationNumber = chromeDriver.findElements(By.xpath("//a[contains(@class, 'page_nav')]")); // # of pages
                 System.out.println(paginationNumber + " pages of posts");
-
+                postPagesNumber = pageNumber;
 
 
                 //******************************* OBTAIN NOTES DATA ************************************************//
@@ -1616,7 +1670,28 @@ public class MedHelpScraper extends Thread{
 
                     for ( int i=0; i < postPerPage; i++){
 
-                        postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
+
+                        // After all comments have been collected. Move to the next page
+                        // and collect the rest of the comment information.
+                        if( postPagesNumber < paginationNumber && (i+1) == postPerPage){
+
+                            postPagesNumber++;
+
+                            Boolean isAdded = Boolean.FALSE;
+//                            if(postPagesNumber < paginationNumber){
+                                chromeDriver.navigate().to("http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + postPagesNumber);
+                                postEntryData = chromeDriver.findElements(By.className("user_post"));
+                                isAdded = postPagesData.addAll(chromeDriver.findElements(By.className("user_post")));
+
+//                                if(!isAdded){
+//                                    postEntryData = chromeDriver.findElements(By.className("question_by"));
+//                                }
+                                i = 0;
+//                            }
+
+                        }
+
+//                        postEntryData = chromeDriver.findElements(By.className("user_post")); // postEntryData.size() # of post
                         postEntryInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", postEntryData.get(i));
                         postEntryInfo = postEntryInfo.replace("\t","").replace("\n","").trim();
 
@@ -1628,7 +1703,7 @@ public class MedHelpScraper extends Thread{
                         Matcher matcher = postNamePattern.matcher(postEntryInfo);
                         matcher.find();
                         String postName = matcher.group(1).trim();
-                        System.out.println(postName);
+                        System.out.print(postName + ", ");
                         post.setPostName(postName);
 
 
@@ -1638,7 +1713,7 @@ public class MedHelpScraper extends Thread{
                         matcher = postDatePattern.matcher(postEntryInfo);
                         matcher.find();
                         String postDate = matcher.group(1).replace(",","").trim();
-                        System.out.println(postDate);
+                        System.out.print(postDate + ", ");
                         post.setPostDate(postDate);
 
 
@@ -1690,7 +1765,6 @@ public class MedHelpScraper extends Thread{
 
 
         }
-
 
         chromeDriver.close();
         chromeDriver.quit();
