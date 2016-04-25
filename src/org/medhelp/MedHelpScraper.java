@@ -57,7 +57,7 @@ public class MedHelpScraper extends Thread{
         String fileText = "";
 
         // different page numbers to parse
-        Integer pageNumber =0;
+        Integer pageNumber =1;
 
         // Number of threads parsed
         Integer threadNumber=0;
@@ -1757,7 +1757,6 @@ public class MedHelpScraper extends Thread{
 
 
         }
-
 
         chromeDriver.close();
         chromeDriver.quit();
