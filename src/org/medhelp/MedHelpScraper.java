@@ -88,9 +88,8 @@ public class MedHelpScraper extends Thread{
 //        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
-        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
-        forumList.add("http://www.medhelp.org/forums/General-Health/show/164");
-//        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
+//        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
+        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
 //        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
@@ -1766,6 +1765,7 @@ public class MedHelpScraper extends Thread{
 
         }
 
+
         chromeDriver.close();
         chromeDriver.quit();
 
@@ -1786,9 +1786,16 @@ public class MedHelpScraper extends Thread{
 
         List<User> userList = new ArrayList<User>();
 
+        dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
+
+        dateString = "2016-04-22 07-27-25 Part 2"; //new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+
+        timeStamp = dateString;
+
+        forumName = "Depression"; // Change depeending on Forum
 
         // ***
-        userList = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/UsersComplete-2016-04-17-Heart-Disease.csv");
+        userList = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/Data to Analyze 05.25.2015/Depression/UsersComplete-2016-04-22 07-27-25-Depression.csv");
 
         System.out.println("userList size after thread scrape : " + userList.size());
 
@@ -1817,6 +1824,7 @@ public class MedHelpScraper extends Thread{
         userList = scrapeFriends(userList);
 
 // ***
+        System.exit(0);
         return userList;
 
     }
