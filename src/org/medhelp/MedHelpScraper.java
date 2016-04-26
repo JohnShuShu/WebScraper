@@ -47,7 +47,7 @@ public class MedHelpScraper extends Thread{
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
 
 
-        buildUserList();
+//       buildUserList();
 
 //        FirefoxProfile firefoxprofile = new FirefoxProfile();
 //        File addonpath = new File(dir+"/Selenium/adblock_plus-2.7.1.xpi");
@@ -125,29 +125,30 @@ public class MedHelpScraper extends Thread{
                 try{
                     totalThreadsData = ThreadTotalDriver.findElements(By.xpath("//span[contains(@class, 'forum_subject_count p')]"));
 
+                if(totalThreadsData.size()<1){
+                    ThreadTotalDriver.close();
+                    ThreadTotalDriver.quit();
+                } else {
+                    // Extract information about Forum size now. i.e. number of pages.
+                    String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
+
+                    if(totalThreadsInfo.contains("of")) {
+                        totalThreadsInfo.replace("<span>.*?<\\/span>","");
+                        totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
+                        String arr[] = totalThreadsInfo.split("  ");
+                        totalThreads = Integer.parseInt(arr[2]);
+                        if(totalThreads>0){
+                            totalThreads = (totalThreads/21) + (totalThreads % 21);
+                        }
+                    }
+                }
+
                 }catch (Exception e){
                     continue;
                 }
 
-                if(totalThreadsData.size()<1){
-                    ThreadTotalDriver.close();
-                    ThreadTotalDriver.quit();
-                }
-
             }while(totalThreadsData.size()<1); // Number of pages in Forum should be more than 10. At least 100 maybe.
 
-
-            // Extract information about Forum size now. i.e. number of pages.
-            String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
-
-            if(totalThreadsInfo.contains("of")) {
-                totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
-                String arr[] = totalThreadsInfo.split("  ");
-                totalThreads = Integer.parseInt(arr[2]);
-                if(totalThreads>0){
-                    totalThreads = (totalThreads/21) + (totalThreads % 21);
-                }
-            }
             ThreadTotalDriver.close();
             ThreadTotalDriver.quit();
 
@@ -826,10 +827,10 @@ public class MedHelpScraper extends Thread{
                             threadCommentors.add(commentor);
 
                             // Add user to list of users.
-//                            if (!doesUserExist(userList, commentor)){
-//                                System.out.println("Adding new User");
-//                                userList.add(commentor);
-//                            }
+                            if (!doesUserExist(userList, commentor)){
+                                System.out.println("Adding new User");
+                                userList.add(commentor);
+                            }
 
                         }
                     }
@@ -1799,7 +1800,7 @@ public class MedHelpScraper extends Thread{
 
         System.out.println("userList size after thread scrape : " + userList.size());
 
-//        userList = scrapeUsers(userList);
+        userList = scrapeUsers(userList);
 
         userList = scrapeNotes(userList);
 
