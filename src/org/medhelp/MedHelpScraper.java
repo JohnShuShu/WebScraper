@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class MedHelpScraper extends Thread{
 
-    public static String dir = "/Users/lucyshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
+    public static String dir = "/Users/cathy/Desktop/WebScraperMac"; // General directory root **** Be sure to CHANGE *****
 
     public static String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
@@ -89,9 +89,9 @@ public class MedHelpScraper extends Thread{
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
+        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
         forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
-//        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
-//        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
+        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
 
         //Depression
@@ -131,10 +131,10 @@ public class MedHelpScraper extends Thread{
                     String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
 
                     if(totalThreadsInfo.contains("of")) {
-                        totalThreadsInfo.replace("<span>.*?<\\/span>","");
+                        totalThreadsInfo.replace("\n","").replace(" <span id=\"IL_AD6\" class=\"IL_AD\">questions</span>","");
                         totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
-                        String arr[] = totalThreadsInfo.split("  ");
-                        totalThreads = Integer.parseInt(arr[2]);
+                        String arr[] = totalThreadsInfo.split(" ");
+                        totalThreads = Integer.parseInt(arr[4]);
                         if(totalThreads>0){
                             totalThreads = (totalThreads/21) + (totalThreads % 21);
                         }
@@ -825,10 +825,10 @@ public class MedHelpScraper extends Thread{
                             threadCommentors.add(commentor);
 
                             // Add user to list of users.
-//                            if (!doesUserExist(userList, commentor)){
-//                                System.out.println("Adding new User");
-//                                userList.add(commentor);
-//                            }
+                            if (!doesUserExist(userList, commentor)){
+                                System.out.println("Adding new User");
+                                userList.add(commentor);
+                            }
 
                         }
                     }

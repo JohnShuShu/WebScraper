@@ -40,7 +40,7 @@ public class DataCleaner {
         //            switch (choice){
         //                case 1:
 //        cleanThreads("/Users/johnshu/Desktop/WebScraper/AnxDepRel/Relationships.csv");
-          cleanThreads("/Users/johnshu/Desktop/WebScraper/Final Data Collection/Nutrition/Nutrition2016-04-06 11-48-10/Threads-NutritionToClean.csv");
+          cleanThreads("/Users/cathy/Desktop/WebScraperMac/Undiagnosed Symptoms/Threads-Undiagnosed-Symptoms-ToClean.csv");
         //                    break;
         //
         //                case 2:
@@ -494,7 +494,7 @@ public class DataCleaner {
 
         // Writing out data to file
 //        File newfile = new File("/Users/johnshu/Desktop/WebScraper/AnxDepRel/FIXED_Relationships" + dateString + ".csv");
-        File newfile = new File("/Users/johnshu/Desktop/WebScraper/Final Data Collection/Nutrition/Nutrition2016-04-06 11-48-10/FIXED_Nutrition" + dateString + ".csv");
+        File newfile = new File("/Users/cathy/Desktop/WebScraperMac/Undiagnosed Symptoms/FIXED_Undiagnosed-Symptoms" + dateString + ".csv");
 
         if (!newfile.exists()) {
             try {
