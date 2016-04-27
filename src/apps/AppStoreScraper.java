@@ -65,7 +65,7 @@ public class AppStoreScraper {
 
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         Date date = new Date();
-        String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(date);
+        String dateString = "2016-04-26 03-41-14";//new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(date);
 
         String fileNameString1 = dateString + "-TopPaidApps";
         String fileNameString2 = dateString + "-TopGrossingApps";
@@ -76,15 +76,15 @@ public class AppStoreScraper {
         fileNameList[2] = fileNameString3;
 
 
-        String address1 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm";
-        String address2 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm";
-        String address3 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm";
+        String address1 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
+        String address2 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
+        String address3 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
 
         addressList[0] = address1;
         addressList[1] = address2;
         addressList[2] = address3;
 
-        for(int n=1; n<4; n++) {
+        for(int n=0; n<3; n++) {
 
 
             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("GoogleApps-" + fileNameList[n] + ".csv"), "utf-8"));

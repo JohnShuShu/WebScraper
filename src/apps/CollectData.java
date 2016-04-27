@@ -7,12 +7,13 @@ public class CollectData {
 
     public static void main(String[] args) throws Exception {
 
-//        ItunesStoreScraper.main(args);
+        AmazonTopAppScraper.main(args);
 
-//        AppStoreScraper.main(args);
+        AppStoreScraper.main(args);
 
         AmazonAppScraper.main(args);
 
+        ItunesStoreScraper.main(args);
 
     }
 }

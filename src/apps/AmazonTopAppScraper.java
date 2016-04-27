@@ -10,13 +10,17 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-//import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.server.SystemClock;
 
 import java.io.*;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+//import org.openqa.selenium.firefox.FirefoxDriver;
 
 /**
  * Created by johnshu on 1/25/16.
@@ -26,16 +30,19 @@ public class AmazonTopAppScraper {
 
     public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
-    public static String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()) + "-UndergroundApps";
+    public static String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
+    public static String [] AmazonTopName = {"AmazonTopPaid", "AmazonTopFree"};
+
+    public static String [] AmazonTopLink = {"http://www.amazon.com/Best-Sellers-Appstore-Android/zgbs/mobile-apps/ref=zg_bs_fvp_f_p_mobile-apps#", "http://www.amazon.com/Best-Sellers-Appstore-Android/zgbs/mobile-apps/ref=zg_bs_fvp_p_f_mobile-apps?_encoding=UTF8&tf=1#"};
 
     public static void main(String[] args) throws Exception {
 
         System.setProperty("webdriver.chrome.driver", dir + "/Selenium/chromedriver");
-            File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
-            ChromeOptions chrome = new ChromeOptions();
-            chrome.addExtensions(addonpath);
-            WebDriver chromeDriver = new ChromeDriver(chrome);
+        File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
+        ChromeOptions chrome = new ChromeOptions();
+        chrome.addExtensions(addonpath);
+        WebDriver chromeDriver = new ChromeDriver(chrome);
 //            chromeDriver.navigate().to("https://www.amazon.com");
 
 
@@ -49,359 +56,372 @@ public class AmazonTopAppScraper {
 //        WebDriver chromeDriver = new FirefoxDriver(firefoxprofile);
 //        WebDriver chromeDriver = new FirefoxDriver();
 
-        // File String to save to file object
-        String fileText = "";
+        for(int n = 0; n < 2; n++) {
 
-        // different page numbers to parse
-        Integer pageNumber = 1;
+            // File String to save to file object
+            String fileText = "";
 
-        // Number of apps parsed
-        Integer appNumber = 0;
+            // different page numbers to parse
+            Integer pageNumber = 1;
 
-        //page link to navigate
-        String pageLink = "http://www.amazon.com/s/ref=sr_pg_" + pageNumber + "?fst=as%3Aon&rh=n%3A2350149011%2Ck%3Aapp&page=" + pageNumber + "&keywords=app&ie=UTF8&qid=1457211528";
+            // Number of apps parsed
+            Integer appNumber = 0;
 
-        // List of apps analyzed and stored
-        List<App> appArrayList = new ArrayList<App>();
+            //page link to navigate
+            String pageLink = AmazonTopLink[n] + pageNumber;
 
-        System.out.println("Gathering data ...\n");
+            // List of apps analyzed and stored
+            List<App> appArrayList = new ArrayList<App>();
 
-        //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
+            System.out.println("Gathering data ...\n");
 
-
-        // pageNumber is automatically incremented at the end of this loop so next page can be crawled. This happens until pages have
-        // no more data i.e. threads.
-        chromeDriver.manage().deleteAllCookies();
-
-//        chromeDriver.navigate().to("http://www.amazon.com/s/ref=s9_hps_bw_clnk?node=2350149011,!2445993011," +
-//                "11350978011&search-alias=banjo-apps&field-review-rating=2479575011&bbn=11350978011&pf_rd_m=" +
-//                "ATVPDKIKX0DER&pf_rd_s=merchandised-search-1&pf_rd_r=12QMT9KHXA5TXCGMYM4R&pf_rd_t=101&pf_rd_p=2382153642&pf_rd_i=2350149011");
-////        chromeDriver.navigate().to("http://www.amazon.com/s/ref=sr_pg_2?rh=n%3A2350149011%2Ck%3Aapps%2Cp_36%3A1-99999999&page=" + pageNumber + "&keywords=apps&ie=UTF8&qid=1454793056");
-//        chromeDriver.navigate().to("http://www.amazon.com/s/ref=sr_pg_2?rh=n%3A2350149011%2Cn%3A%212445993011%2Cn%3A11350978011%2Ck%3Aapps&page=" + pageNumber + "&keywords=apps&ie=UTF8&qid=1455227365");
-//
-        // Underground apps
-//        chromeDriver.navigate().to("http://www.amazon.com/s/ref=sr_pg_2?fst=as%3Aoff&rh=" +
-//                "n%3A2350149011%2Ck%3Aapp%2Cp_n_program_participation%3A11335409011&page=" + pageNumber +
-//                "&keywords=app&ie=UTF8&qid=1455313174");
+            //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
 
 
-        // All apps Scraping
-        chromeDriver.navigate().to(pageLink);
+            // pageNumber is automatically incremented at the end of this loop so next page can be crawled. This happens until pages have
+            // no more data i.e. threads.
+            chromeDriver.manage().deleteAllCookies();
 
-        chromeDriver.manage().deleteAllCookies();
 
-        List<WebElement> appList = chromeDriver.findElements(By.className("s-result-item"));
+            // All apps Scraping
+            chromeDriver.navigate().to(pageLink);
 
-        String appFileText = "Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Last updated,Content Rating, In app purchases,appPrice,appDollarPrice,, Best seller rank, App store rank,Category rank,Category,Size,Link\n";
+            chromeDriver.manage().deleteAllCookies();
 
-        Date date = new Date();
-        String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(date);
+            List<WebElement> appList = chromeDriver.findElements(By.className("zg_itemImmersion"));
 
-        Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("AmazonApps-" + dateString + ".csv"), "utf-8"));
+            String appFileText = "Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Last updated,Content Rating, In app purchases,appPrice,appDollarPrice,, Best seller rank, App store rank,Category rank,Category,Size,Link\n";
 
-        do {
+            Date date = new Date();
 
-            System.out.println(appList.size());
+            dateString = AmazonTopName[n] + "-" + dateString;
+
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dateString + ".csv"), "utf-8"));
+
+            do {
+
+                System.out.println(appList.size());
 
 //            System.out.println("\nPage Link,App Name,Company,Av. Rating,No. Ratings,Editors' Choice,Top Developer,5 STARS,4 STARS,3 STARS,2 STARS,1 STAR,Content Rating,In-app Products/item \n");
 //                WebDriver appDriver = new FirefoxDriver();
-            for (int i = 0; i < appList.size(); i++) {
+                for (int i = 0; i < appList.size(); i++) {
 //            for ( int i=0; i < 3; i++){
 
 
-                try {
+                    try {
 
-                    String Url = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appList.get(i));
-//                    System.out.println("\n");
-
-
-                    // Instantiate a new App
-                    App app = new App();
-                    appNumber++;
-
-                    String dateCollected = new SimpleDateFormat("MM/dd/yyyy").format(date);
-                    app.setDateCollected(dateCollected);
-
-                    // Extract app link
-                    Pattern appLinkPattern = Pattern.compile("<a class=\"a-link-normal s-access-detail-page  a-text-normal\" title=\"(.+?)\" href=\"(.+?)\">");
-                    Matcher matcher = appLinkPattern.matcher(Url);
-                    matcher.find();
-                    String appName = matcher.group(1);
-                    String appLink = matcher.group(2);
-                    System.out.print(appName + ", ");
-//                    System.out.print(appLink + ", ");
-                    app.setAppPageLink(appLink);
-                    app.setAppName(appName);
+                        String Url = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appList.get(i));
+                        Url.replace("\n","");
+//                        System.out.println(Url);
 
 
-                    // Extract App Star Ratings
-                    Pattern appStarRatingsPattern = Pattern.compile("<span class=\"a-icon-alt\">(.+?) out of 5 stars<\\/span>");
-                    matcher = appStarRatingsPattern.matcher(Url);
-                    matcher.find();
-                    String appStarRatings = matcher.group(1);
-                    System.out.print(appStarRatings + ", ");
-                    app.setStarRatings(appStarRatings);
+                        // Instantiate a new App
+                        App app = new App();
+                        appNumber++;
+
+                        String dateCollected = new SimpleDateFormat("MM/dd/yyyy").format(date);
+                        app.setDateCollected(dateCollected);
 
 
-                    // Extract number of app ratings/reviews
-                    Pattern appRatingsPattern = Pattern.compile("<a class=\"a-size-small a-link-normal a-text-normal\" href=\".+?#customerReviews\">(.+?)<\\/a>");
-                    matcher = appRatingsPattern.matcher(Url);
-                    matcher.find();
-                    String appRatings = matcher.group(1);
-                    System.out.print(appRatings.replace(",", "") + ", ");
-                    app.setNumberOfRatings(appRatings);
+                        // Extract app link
+//                        List<WebElement> nameData = appDriver.findElements(By.xpath("//div[contains(@class, 'zg_title')]"));
+//                        String nameInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", nameData.get(i));
+
+                        Pattern appLinkPattern = Pattern.compile("<div class=\"zg_title\"><a href=\"(.+?)\">(.+?)<\\/a>");
+                        Matcher matcher = appLinkPattern.matcher(Url);
+                        matcher.find();
+                        String appLink = matcher.group(1);
+                        if(appLink.contains("&#10;&#10;&#10;&#10;&#10;&#10;&#10;")){
+                            appLink = appLink.replace("&#10;&#10;&#10;&#10;&#10;&#10;&#10;","");
+                        }
+                        String appName = matcher.group(2);
+                        System.out.print(appName + ", ");
+                        System.out.print(appLink + ", ");
+                        app.setAppPageLink(appLink);
+                        app.setAppName(appName);
 
 
-                    appDriver.navigate().to(appLink);
+                        appDriver.navigate().to(appLink);
 
-//                List<WebElement> appData = appDriver.findElements(By.xpath("//div[contains(@class, 'a-container')]"));
+                        List<WebElement> appData = appDriver.findElements(By.xpath("//div[contains(@class, 'a-container')]"));
 //
-//                String appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-//                System.out.println(appInfo + "\n");
+                        String appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+//                        System.out.println(appInfo + "\n");
 
-                    // Extract Underground or Not
-                    List<WebElement> paidData = appDriver.findElements(By.xpath("//a[contains(@class, 'banjoLogoText')]"));
-                    Boolean appPaid = true;
-                    if(paidData.size()>0){
-                        String appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", paidData.get(0));
+                        // Extract App Star Ratings
+                        Pattern appStarRatingsPattern = Pattern.compile("<span class=\"a-icon-alt\">(.+?) out of 5 stars<\\/span>");
+                        matcher = appStarRatingsPattern.matcher(appInfo);
+                        matcher.find();
+                        String appStarRatings = matcher.group(1);
+                        System.out.print(appStarRatings + ", ");
+                        app.setStarRatings(appStarRatings);
+
+
+                        try {
+                            List<WebElement> reviewData = appDriver.findElements(By.xpath("//span[contains(@class, 'a-size-small')]//a"));
+                            String reviewInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", reviewData.get(0));
+//                         Extract number of app ratings/reviews
+//                        Pattern appRatingsPattern = Pattern.compile("<a class=\"a-link-normal\" href=\"http://www.amazon.com/product-reviews/.+?\">(.+?) customer reviews<\\/a>");
+//                        matcher = appRatingsPattern.matcher(appInfo);
+//                        matcher.find();
+//                        String appRatings = matcher.group(1);
+                            reviewInfo = reviewInfo.replace("customer reviews", "").replace("\n", "").trim();
+                            String appRatings = reviewInfo;
+                            System.out.print(appRatings.replace(",", "") + ", ");
+                            app.setNumberOfRatings(appRatings);
+
+                        } catch (Exception e){
+                            System.out.print("0" + ", ");
+                            app.setNumberOfRatings("0");
+
+                        }
+
+                        // Extract Underground or Not
+                        List<WebElement> paidData = appDriver.findElements(By.xpath("//a[contains(@class, 'banjoLogoText')]"));
+                        Boolean appPaid = true;
+                        if (paidData.size() > 0) {
+                            String paidInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", paidData.get(0));
 //                      System.out.println("\n" + appInfo.replace("\n"," ") + "\n");
 
-                        if(appInfo.trim().equals("Amazon Underground")){
-                            appPaid = false;
+                            if (paidInfo.trim().equals("Amazon Underground")) {
+                                appPaid = false;
+                            }
                         }
-                    }
-                    System.out.print(appPaid + ", ");
-                    app.setAppPaid(appPaid);
+                        System.out.print(appPaid + ", ");
+                        app.setAppPaid(appPaid);
 
 
-
-                    // Extract app Creator Name
-                    List<WebElement> appData = appDriver.findElements(By.xpath("//div[contains(@class, 'buying')]"));
-                    String appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                        // Extract app Creator Name
+                        List<WebElement> buyingData = appDriver.findElements(By.xpath("//div[contains(@class, 'buying')]"));
+                        String buyingInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", buyingData.get(0));
 //                System.out.println("\n" + appInfo.replace("\n"," ") + "\n");
 
-                    Pattern appCreatorPattern = Pattern.compile("<a href=\".+?\">(.+?)<\\/a>");
-                    matcher = appCreatorPattern.matcher(appInfo.replace("\n", " "));
-                    matcher.find();
-                    String appCreatorName = matcher.group(1);
-                    System.out.print(appCreatorName + ", ");
-                    app.setAppCreator(appCreatorName);
+                        Pattern appCreatorPattern = Pattern.compile("<a href=\".+?\">(.+?)<\\/a>");
+                        matcher = appCreatorPattern.matcher(buyingInfo.replace("\n", " "));
+                        matcher.find();
+                        String appCreatorName = matcher.group(1);
+                        System.out.print(appCreatorName + ", ");
+                        app.setAppCreator(appCreatorName);
 
 
+                        // Extract App price and inAppProducts
+//                        appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(1));
 
-                    // Extract App price and inAppProducts
-                    appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(1));
+//                        Pattern appPricePattern = Pattern.compile("<span class=\"banjoPrice\">(.+?)<\\/span>");
+//                        matcher = appPricePattern.matcher(appInfo.replace("\n", ""));
+//                        while (matcher.find()) {
+//                            if (matcher.group(1).contains("$")) {
+//                                String appPrice = matcher.group(1);
+//                                System.out.print(appPrice.trim() + ", ");
+//                                app.setAppPrice(appPrice.trim());
+//                            } else {
+//                                String inAppProducts = matcher.group(1);
+//                                System.out.print(inAppProducts.trim() + ", ");
+//                                app.setInAppProducts(inAppProducts.trim());
+//                            }
+//                        }
 
-                    Pattern appPricePattern = Pattern.compile("<span class=\"banjoPrice\">(.+?)<\\/span>");
-                    matcher = appPricePattern.matcher(appInfo.replace("\n", ""));
-                    while (matcher.find()) {
-                        if (matcher.group(1).contains("$")) {
-                            String appPrice = matcher.group(1);
-                            System.out.print(appPrice.trim() + ", ");
-                            app.setAppPrice(appPrice.trim());
-                        } else {
-                            String inAppProducts = matcher.group(1);
-                            System.out.print(inAppProducts.trim() + ", ");
-                            app.setInAppProducts(inAppProducts.trim());
-                        }
-                    }
-
-                    // Extract Price  ****************************
-                    List<WebElement> appPrice = appDriver.findElements(By.xpath("//strong[contains(@class, 'priceLarge')]"));
-                    if(appPrice.size()>0){
-                        String appPriceInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appPrice.get(0));
-                        appPriceInfo = appPriceInfo.replace("\n"," ").trim();
+                        // Extract Price  ****************************
+                        List<WebElement> appPrice = appDriver.findElements(By.xpath("//strong[contains(@class, 'priceLarge')]"));
+                        if (appPrice.size() > 0) {
+                            String appPriceInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appPrice.get(0));
+                            appPriceInfo = appPriceInfo.replace("\n", " ").trim();
 //                    System.out.println("n" + appPriceInfo.replace("\n"," ") + "\n");
 //                    appPricePattern = Pattern.compile("<a href=\".+?\">(.+?)<\\/a>");
 //                    matcher = appPricePattern.matcher(appPriceInfo.replace("\n", " "));
 //                    matcher.find();
 //                    String appDollarPrice = matcher.group(1);
-                        String appDollarPrice = appPriceInfo;
-                        appDollarPrice = (appDollarPrice.contains("Free Download")? "$0.00" : appDollarPrice);
-                        System.out.print(appDollarPrice + ", ");
-                        app.setAppPrice(appDollarPrice);
-                    }
+                            String appDollarPrice = appPriceInfo;
+                            appDollarPrice = (appDollarPrice.contains("Free Download") ? "$0.00" : appDollarPrice);
+                            System.out.print(appDollarPrice.replace("$","") + ", ");
+                            app.setAppPrice(appDollarPrice);
+                        }
 
 
-
-                    // Extract Release and Updates Date
-                    appData = appDriver.findElements(By.xpath("//td[contains(@class, 'bucket')]"));
-                    appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-                    appInfo = appInfo.replace("\n"," ");
+                        // Extract Release and Updates Date
+                        appData = appDriver.findElements(By.xpath("//td[contains(@class, 'bucket')]"));
+                        appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                        appInfo = appInfo.replace("\n", " ");
 //                    System.out.println("\n" + appInfo.replace("\n"," ") + "\n");
 
-                    //Release Date
-                    Pattern releaseDatePattern = Pattern.compile("<li><b>Original Release Date:<\\/b>(.+?)<\\/li>");
-                    matcher = releaseDatePattern.matcher(appInfo);
-                    matcher.find();
-                    String releaseDate = matcher.group(1).trim().replace(",", "");
-                    System.out.print(releaseDate + ", ");
-                    app.setReleaseDate(releaseDate);
+                        //Release Date
+                        Pattern releaseDatePattern = Pattern.compile("<li><b>Original Release Date:<\\/b>(.+?)<\\/li>");
+                        matcher = releaseDatePattern.matcher(appInfo);
+                        matcher.find();
+                        String releaseDate = matcher.group(1).trim().replace(",", "");
+                        System.out.print(releaseDate + ", ");
+                        app.setReleaseDate(releaseDate);
 
-                     // last update
-                    Pattern updateDatePattern = Pattern.compile("<li>   <b> Latest Developer Update:<\\/b>(.+?)<\\/li>");
-                    matcher = updateDatePattern.matcher(appInfo);
-                    matcher.find();
-                    String updateDate = matcher.group(1).trim().replace(",", "");
-                    System.out.print(updateDate + ", ");
-                    app.setLastUpdated(updateDate);
+                        // last update
+                        Pattern updateDatePattern = Pattern.compile("<li>   <b> Latest Developer Update:<\\/b>(.+?)<\\/li>");
+                        matcher = updateDatePattern.matcher(appInfo);
+                        matcher.find();
+                        String updateDate = matcher.group(1).trim().replace(",", "");
+                        System.out.print(updateDate + ", ");
+                        app.setLastUpdated(updateDate);
 
-                    // Extract App Category  ****************************  Games or not
-                    List<WebElement> appCatData = appDriver.findElements(By.xpath("//li[contains(@class, 'zg_hrsr_item')]"));
+                        // Extract App Category  ****************************  Games or not
+                        List<WebElement> appCatData = appDriver.findElements(By.xpath("//li[contains(@class, 'zg_hrsr_item')]"));
 
-                    if(appCatData.size()>0){
-                        String appCatInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appCatData.get(0));
-                        appCatInfo = appCatInfo.replace("\n","").trim();
+                        if (appCatData.size() > 0) {
+                            String appCatInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appCatData.get(0));
+                            appCatInfo = appCatInfo.replace("\n", "").trim();
 //                        System.out.println("\n"+appCatInfo);
 
-                        //Extract content ratings
-                        Pattern appCatPattern = Pattern.compile(">&nbsp;(.+?)<\\/a>");
-                        matcher = appCatPattern.matcher(appCatInfo);
-                        matcher.find();
-                        String appCategory = matcher.group(1).trim().replace(",","") ;
-                        System.out.print(appCategory + ", ");
-                        app.setAppCategory(appCategory);
-                    }
+                            //Extract content ratings
+                            Pattern appCatPattern = Pattern.compile(">&nbsp;(.+?)<\\/a>");
+                            matcher = appCatPattern.matcher(appCatInfo);
+                            matcher.find();
+                            String appCategory = matcher.group(1).trim().replace(",", "");
+                            System.out.print(appCategory + ", ");
+                            app.setAppCategory(appCategory);
+                        }
 
 
-                    // Extract Amazon Best Seller Rank
-                    appData = appDriver.findElements(By.xpath("//li[contains(@id, 'SalesRank')]"));
-                    appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-                    appInfo = appInfo.replace("<b>Amazon Best Sellers Rank:</b>", " ").replace("\n", "").trim();
+                        // Extract Amazon Best Seller Rank
+                        appData = appDriver.findElements(By.xpath("//li[contains(@id, 'SalesRank')]"));
+                        appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                        appInfo = appInfo.replace("<b>Amazon Best Sellers Rank:</b>", " ").replace("\n", "").trim();
 //                  System.out.println("\n" + appInfo + "\n");
 
-                    Pattern amazonBestSellerRankPattern = Pattern.compile("#(.+?) .+?");
-                    matcher = amazonBestSellerRankPattern.matcher(appInfo);
-                    matcher.find();
-                    String amazonBestSellerRank = matcher.group(1);
-                    System.out.print(amazonBestSellerRank + ", ");
-                    app.setAmazonBestSellerRank(amazonBestSellerRank.replace(",",""));
+                        Pattern amazonBestSellerRankPattern = Pattern.compile("#(.+?) .+?");
+                        matcher = amazonBestSellerRankPattern.matcher(appInfo);
+                        matcher.find();
+                        String amazonBestSellerRank = matcher.group(1);
+                        System.out.print(amazonBestSellerRank + ", ");
+                        app.setAmazonBestSellerRank(amazonBestSellerRank.replace(",", ""));
 
 
 //                  <span class="zg_hrsr_rank">#18</span>
 //                  <span class="zg_hrsr_rank">#19</span>  zg_hrsr_item
 
 
-                    Pattern appRankPattern = Pattern.compile("<span class=\"zg_hrsr_rank\">(.+?)<\\/span>");
-                    matcher = appRankPattern.matcher(appInfo);
-                    String androidAppstoreRank = "";
-                    String androidAppstoreCategoryRank = "";
-                    while (matcher.find()) {
+                        Pattern appRankPattern = Pattern.compile("<span class=\"zg_hrsr_rank\">(.+?)<\\/span>");
+                        matcher = appRankPattern.matcher(appInfo);
+                        String androidAppstoreRank = "";
+                        String androidAppstoreCategoryRank = "";
+                        while (matcher.find()) {
 //                    System.out.print(matcher.group(1) + ", ");
-                        if (androidAppstoreRank == "" & matcher.group(1).contains("#")) {
+                            if (androidAppstoreRank == "" & matcher.group(1).contains("#")) {
 
-                            androidAppstoreRank = matcher.group(1);
-                            androidAppstoreRank = androidAppstoreRank.replace("#","");
-                            System.out.print(androidAppstoreRank + ", ");
-                            app.setAndroidAppstoreRank(androidAppstoreRank);
+                                androidAppstoreRank = matcher.group(1);
+                                androidAppstoreRank = androidAppstoreRank.replace("#", "");
+                                System.out.print(androidAppstoreRank + ", ");
+                                app.setAndroidAppstoreRank(androidAppstoreRank);
 
-                        } else if (!(androidAppstoreRank == "") & matcher.group(1).contains("#")) {
+                            } else if (!(androidAppstoreRank == "") & matcher.group(1).contains("#")) {
 
-                            androidAppstoreCategoryRank = matcher.group(1);
-                            System.out.print(androidAppstoreCategoryRank + ", ");
-                            app.setAndroidAppstoreCategoryRank(androidAppstoreCategoryRank);
+                                androidAppstoreCategoryRank = matcher.group(1);
+                                System.out.print(androidAppstoreCategoryRank + ", ");
+                                app.setAndroidAppstoreCategoryRank(androidAppstoreCategoryRank);
+                            }
                         }
-                    }
 
 //                  String editorsChoice = (app.editorChoice == true) ? "Editors' Choice, " : ", ";
 //                  String topDeveloper = (app.topDeveloper == true) ? "Top Developer, " : ", ";
 
 //                  System.out.print(editorsChoice + topDeveloper);
 
-                    // Extract app Size                          <strong>Size:</strong> 86.5MB</div>
-                    appData = appDriver.findElements(By.xpath("//div[contains(@id, 'mas-technical-details')]"));
-                    appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-                    appInfo = appInfo.replace("\n", "").trim();
+                        // Extract app Size                          <strong>Size:</strong> 86.5MB</div>
+                        appData = appDriver.findElements(By.xpath("//div[contains(@id, 'mas-technical-details')]"));
+                        appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                        appInfo = appInfo.replace("\n", "").trim();
 //                  System.out.println("\n" + appInfo + "\n");
 
-                    Pattern appSizePattern = Pattern.compile("<strong>Size:<\\/strong>(.+?)<\\/div>");
-                    matcher = appSizePattern.matcher(appInfo);
-                    matcher.find();
-                    String appSize = matcher.group(1).replace("\"", "");
-                    System.out.print(appSize.trim() + ", ");
-                    app.setAppSize(appSize.trim());
+                        Pattern appSizePattern = Pattern.compile("<strong>Size:<\\/strong>(.+?)<\\/div>");
+                        matcher = appSizePattern.matcher(appInfo);
+                        matcher.find();
+                        String appSize = matcher.group(1).replace("\"", "");
+                        System.out.print(appSize.trim().replace("MB","") + ", ");
+                        app.setAppSize(appSize.trim());
 
-                    // Extract app stars histogram
-                    appData = appDriver.findElements(By.xpath("//table[contains(@id, 'histogramTable')]"));
-                    appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-                    appInfo = appInfo.replace("\n", "").trim();
+                        // Extract app stars histogram
+                        appData = appDriver.findElements(By.xpath("//table[contains(@id, 'histogramTable')]"));
+                        appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                        appInfo = appInfo.replace("\n", "").trim();
 //                  System.out.println("\n" + appInfo + "\n");
 
-                    Pattern appHistogramPattern = Pattern.compile("<\\/span><a class=\"a-link-normal\" title=\".+?\" href=\".+?\">(.+?)%<\\/a>");
-                    matcher = appHistogramPattern.matcher(appInfo);
-                    Map stars = new HashMap<Integer, String>();
-                    stars.put(1,"0");
-                    stars.put(2,"0");
-                    stars.put(3,"0");
-                    stars.put(4,"0");
-                    stars.put(5,"0");
+                        Pattern appHistogramPattern = Pattern.compile("<\\/span><a class=\"a-link-normal\" title=\".+?\" href=\".+?\">(.+?)%<\\/a>");
+                        matcher = appHistogramPattern.matcher(appInfo);
+                        Map stars = new HashMap<Integer, String>();
+                        stars.put(1, "0");
+                        stars.put(2, "0");
+                        stars.put(3, "0");
+                        stars.put(4, "0");
+                        stars.put(5, "0");
 
-                    Integer star = 5;
-                    while (matcher.find()) {
-                        System.out.print(matcher.group(1).replace(",", "") + ", ");
+                        Integer star = 5;
+                        while (matcher.find()) {
+                            System.out.print(matcher.group(1).replace(",", "") + ", ");
 
-                        stars.put(star, matcher.group(1));
-                        star--;
+                            stars.put(star, matcher.group(1));
+                            star--;
+                        }
+
+                        app.setHistogram(stars);
+
+                        String appText = app.printToFile();
+                        System.out.println(appText);
+                        appArrayList.add(app);
+                        System.out.println();
+                        writer.write(appText);
+
+                    } catch (Exception e) {
+                        System.err.println("Caught Exception: " + e.getMessage());
+                        continue;
                     }
 
-                    app.setHistogram(stars);
+                    if ((appNumber / appList.size()) == pageNumber) {
+                        pageNumber++;
+                        System.out.println("************************************************************************* NAVIGATING TO PAGE " + pageNumber + " *************************************************************************");
+                        pageLink = AmazonTopLink[n] + pageNumber;
+                        chromeDriver.navigate().to(pageLink);
+                        TimeUnit.SECONDS.sleep(10);
+                        appList = chromeDriver.findElements(By.className("zg_itemImmersion"));
+                    }
 
-                    String appText = app.printToFile();
-                    System.out.println(appText);
-                    appArrayList.add(app);
-                    System.out.println();
-                    writer.write(appText);
+//                    if(pageNumber>5){
+//                        appList.clear();
+//                        break;
+//                    }
 
-                } catch (Exception e) {
-                    System.err.println("Caught Exception: " + e.getMessage());
-                    continue;
                 }
-
-                if((appNumber/appList.size())==pageNumber){
-                    System.out.println("************************************************************************* NAVIGATING TO PAGE " + pageNumber + " *************************************************************************");
-                    pageNumber++;
-                    pageLink = "http://www.amazon.com/s/ref=sr_pg_" + pageNumber + "?fst=as%3Aon&rh=n%3A2350149011%2Ck%3Aapp&page=" + pageNumber + "&keywords=app&ie=UTF8&qid=1457211528";
-
-                    chromeDriver.navigate().to(pageLink);
-                    appList = chromeDriver.findElements(By.className("s-result-item"));
-                }
-
-
-
-            }
 //        }while (appList.size()>1);
-        }while (pageNumber<61);
+            } while (pageNumber < 6);
 
 
-        chromeDriver.close();
-        chromeDriver.quit();
-        //******************************* END OF APP DATA EXTRACTION ************************************************//
 
-        try{
+            //******************************* END OF APP DATA EXTRACTION ************************************************//
+
+            try {
 //            String appFileText = "Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Content Rating, In app purchases,appPrice,appDollarPrice,, Best seller rank, App store rank,Category rank,Category,Size,Link";
-                    //"Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Content Rating, In app purchases, Best seller rank, App store rank, app category rank\n";
+                //"Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Content Rating, In app purchases, Best seller rank, App store rank, app category rank\n";
 
 //            String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
-            System.out.println("Writing final user data to the file ...\n");
+                System.out.println("Writing final user data to the file ...\n");
 
-            // Writing out data to file
-            writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("AmazonAppsFinal-" + dateString + ".csv"), "utf-8"));
-            for(App app: appArrayList){
+                // Writing out data to file
+                writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("Final-" + dateString + ".csv"), "utf-8"));
+                for (App app : appArrayList) {
 
-                appFileText = appFileText + app.printToFile();
+                    appFileText = appFileText + app.printToFile();
 
+                }
+
+
+                System.out.println(appFileText);
+                writer.write(appFileText);
+                writer.close();
+
+            } catch (Exception e) {
+                System.err.println("Caught Exception: " + e.getMessage());
             }
 
-
-            System.out.println(appFileText);
-            writer.write(appFileText);
-            writer.close();
-
-        } catch (Exception e) {
-            System.err.println("Caught Exception: " + e.getMessage());
         }
 
+        chromeDriver.close();
+        chromeDriver.quit();
     }
 
 

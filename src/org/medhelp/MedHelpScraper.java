@@ -8,7 +8,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
-import org.openqa.selenium.remote.server.SystemClock;
 
 
 import java.io.*;
@@ -40,6 +39,8 @@ public class MedHelpScraper extends Thread{
 
     public static void main(String[] args)  throws Exception {
 
+       buildUserList();
+
         System.setProperty("webdriver.chrome.driver", dir + "/Selenium/chromedriver");
         File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
@@ -47,7 +48,6 @@ public class MedHelpScraper extends Thread{
         WebDriver chromeDriverGen = new ChromeDriver(chrome);
 
 
-//       buildUserList();
 
 //        FirefoxProfile firefoxprofile = new FirefoxProfile();
 //        File addonpath = new File(dir+"/Selenium/adblock_plus-2.7.1.xpi");
@@ -133,7 +133,7 @@ public class MedHelpScraper extends Thread{
                     String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
 
                     if(totalThreadsInfo.contains("of")) {
-                        totalThreadsInfo.replace("<span>.*?<\\/span>","");
+                        totalThreadsInfo.replace("\n","").replace(" <span id=\"IL_AD6\" class=\"IL_AD\">questions</span>","");
                         totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
                         String arr[] = totalThreadsInfo.split(" ");
                         totalThreads = Integer.parseInt(arr[4]);
@@ -252,9 +252,8 @@ public class MedHelpScraper extends Thread{
                         }
 
                         matcher.find();
-                        User threadCreator = new User(matcher.group(1));
-                        System.out.print(threadCreator.userName  + ", ");
-                        thread.setThreadCreator(threadCreator);
+                        user = new User(matcher.group(1));
+                        System.out.print(user.userName  + ", ");
 
 
                         // Extract Link to Thread Creator's Page
@@ -310,7 +309,7 @@ public class MedHelpScraper extends Thread{
                         userUniqueId = arr[1];
 //                        System.out.print(userUniqueId);
                         user.setUniqueId(Integer.valueOf(userUniqueId));
-                        user.setUserName(threadCreator.getUserName());
+//                        user.setUserName(threadCreator.getUserName());
 
 
                         if (!doesUserExist(userList, user)) {
@@ -318,6 +317,7 @@ public class MedHelpScraper extends Thread{
                             userList.add(user);
                         }
 
+                        thread.setThreadCreator(user);
 
                         threadList.add(thread);
 
@@ -1790,7 +1790,7 @@ public class MedHelpScraper extends Thread{
 
         dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
-        dateString = "2016-04-22 07-27-25 Part 2"; //new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        dateString = "2016-04-22 07-27-25-Depression 2"; //new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
         timeStamp = dateString;
 
@@ -1801,7 +1801,7 @@ public class MedHelpScraper extends Thread{
 
         System.out.println("userList size after thread scrape : " + userList.size());
 
-        userList = scrapeUsers(userList);
+//        userList = scrapeUsers(userList);
 
         userList = scrapeNotes(userList);
 
