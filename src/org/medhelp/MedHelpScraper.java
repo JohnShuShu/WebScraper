@@ -87,11 +87,11 @@ public class MedHelpScraper extends Thread{
 
         //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
         List<String> forumList = new ArrayList<String>();
-        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
+//        forumList.add("http://www.medhelp.org/forums/Depression/show/57");
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
-//        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
+        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
 //        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
@@ -125,10 +125,6 @@ public class MedHelpScraper extends Thread{
                 try{
                     totalThreadsData = ThreadTotalDriver.findElements(By.xpath("//span[contains(@class, 'forum_subject_count p')]"));
 
-                }catch (Exception e){
-                    continue;
-                }
-
                 if(totalThreadsData.size()<1){
                     ThreadTotalDriver.close();
                     ThreadTotalDriver.quit();
@@ -139,8 +135,8 @@ public class MedHelpScraper extends Thread{
                     if(totalThreadsInfo.contains("of")) {
                         totalThreadsInfo.replace("<span>.*?<\\/span>","");
                         totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
-                        String arr[] = totalThreadsInfo.split("  ");
-                        totalThreads = Integer.parseInt(arr[2]);
+                        String arr[] = totalThreadsInfo.split(" ");
+                        totalThreads = Integer.parseInt(arr[4]);
                         if(totalThreads>0){
                             totalThreads = (totalThreads/21) + (totalThreads % 21);
                         }
@@ -1770,6 +1766,7 @@ public class MedHelpScraper extends Thread{
 
 
         }
+
 
         chromeDriver.close();
         chromeDriver.quit();
