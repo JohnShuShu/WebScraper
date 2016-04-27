@@ -125,6 +125,10 @@ public class MedHelpScraper extends Thread{
                 try{
                     totalThreadsData = ThreadTotalDriver.findElements(By.xpath("//span[contains(@class, 'forum_subject_count p')]"));
 
+                }catch (Exception e){
+                    continue;
+                }
+
                 if(totalThreadsData.size()<1){
                     ThreadTotalDriver.close();
                     ThreadTotalDriver.quit();
