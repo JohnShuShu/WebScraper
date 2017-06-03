@@ -9,11 +9,13 @@ public class CollectData {
 
         AmazonTopAppScraper.main(args);
 
+        GoogleAppsAux.main(args);
+
         AppStoreScraper.main(args);
 
-        AmazonAppScraper.main(args);
+//        ItunesStoreScraper.main(args);
 
-        ItunesStoreScraper.main(args);
+//        AmazonAppScraper.main(args);
 
     }
 }

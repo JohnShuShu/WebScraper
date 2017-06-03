@@ -1,15 +1,12 @@
 package apps;
 
-import org.medhelp.*;
-import org.medhelp.Thread;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
+import org.medhelp.User;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -17,145 +14,132 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 /**
- * Created with IntelliJ IDEA.
- * User: johnshu
+ * Created by johnshu on 5/24/16.
  */
-
-public class AppStoreScraper {
+public class GoogleAppsAux {
 
     public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
     public static void main(String[] args)  throws Exception {
 
 
-//        WebDriver chromeDriver = new FirefoxDriver();
-        //WebDriver chromeDriver = new FirefoxDriver();
-
         System.setProperty("webdriver.chrome.driver", dir + "/Selenium/chromedriver");
         File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
         ChromeOptions chrome = new ChromeOptions();
         chrome.addExtensions(addonpath);
         WebDriver chromeDriver = new ChromeDriver(chrome);
+        WebDriver amazoneDriver = new ChromeDriver(chrome);
 
-        // File String to save to file object
-        String fileText = "";
 
-        String[] fileNameList = new String[4];
+        String dateString = new SimpleDateFormat("yyyy-MM-dd hh-mm-ss").format(new Date());
 
-        String address = "";
+        //String file = "/Users/johnshu/Desktop/WebScraper/FreeFixedCSV.csv";
+//        String file = "/Users/johnshu/Desktop/WebScraper/FreeGoogleAppsToExtract.csv";
+        String file = "/Users/johnshu/Desktop/WebScraper/PaidGoogleAppsToExtract.csv";
 
-        String[] addressList = new String[4];
+        BufferedReader bufferedReader = null;
+        String line = "";
 
-        // different page numbers to parse
-        Integer pageNumber =1;
 
-        // Number of threads parsed
-        Integer threadNumber=0;
+        // Writing out data to file
+//        File newfile = new File("/Users/johnshu/Desktop/WebScraper/Free Fixed Downloads-" + dateString + ".csv");
+//
+//        if (!newfile.exists()) {
+//            try {
+//                newfile.createNewFile();
+//            } catch (IOException e) {
+//                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+//            }
+//        }
 
-        // WebElement from Selenium
-        List<WebElement> newSubjectElement;
+        System.out.println("\n\nPrint out of File " + file);
+
+//        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("FreeGoogleAppsFromPlayStore-"+ dateString + ".csv"), "utf-8"));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("PaidGoogleAppsFromPlayStore-"+ dateString + ".csv"), "utf-8"));
+//        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ExtractGoogleAppsFromPlayStore-"+ dateString + ".csv"), "utf-8"));
+        String fileHeader = "Date Collected,AppName,App Creator,Number of Ratings,Star Ratings,Editor's Choice,Top Developer,5 Star,4 Star ,3 Star,2 Star,1 Star,App Price,Release Date,Last Updated,Category,Content Rating,Downloads,In App Products,Page Link\n";
+        System.out.println(fileHeader);
+
+        writer.write(fileHeader);
 
         // List of apps extracted and stored
         List<App> appArrayList = new ArrayList<App>();
 
+        List<String> appList = new ArrayList<String>();
+//        Integer friendNumber = 0;
 
-        System.out.println("Gathering data ...");
+        try {
 
-        //************************************************* START SCRAPPING FORUM FOR THE THREADS *************************************************//
-        Date date = new Date();
-        String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(date);
-
-        String fileNameString1 = dateString + "-TopPaidApps";
-        String fileNameString2 = dateString + "-TopGrossingApps";
-        String fileNameString3 = dateString + "-TopFreeApps";
-
-        fileNameList[0] = fileNameString1;
-        fileNameList[1] = fileNameString2;
-        fileNameList[2] = fileNameString3;
+//            Scanner input = new Scanner(new File(file));
+//            System.out.println(input.next());
 
 
-        String address1 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
-        String address2 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
-        String address3 = "file:///Users/johnshu/Desktop/WebScraper/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.html";
+//            try {
+//                File fileToRead = new File(file);
+//                input = new Scanner(new File(file));
+//                System.out.println(input.toString());
+//            } catch (FileNotFoundException e) {
+//                e.printStackTrace();
+//            }
 
-        addressList[0] = address1;
-        addressList[1] = address2;
-        addressList[2] = address3;
+            bufferedReader = new BufferedReader(new FileReader(file));
 
-        for(int n=0; n<3; n++) {
+            while ((line = bufferedReader.readLine()) != null){
+//            while (input.hasNextLine()) {
 
+//                 line = input.nextLine();
+                System.out.println("\n\nPrinting Line :" + line);
 
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("GoogleApps-" + fileNameList[n] + ".csv"), "utf-8"));
+//                List<String> attributes = new ArrayList<String>(Arrays.asList(line.split(",")));
+                appList.add(line);
+            }
 
-
-//         do{
-            // pageNumber is automatically incremented at the end of this loop so next page can be crawled. This happens until pages have
-            // no more data i.e. threads.
-            chromeDriver.navigate().to(addressList[n]);
-
-//        chromeDriver.navigate().to("file:///Users/johnshu/Desktop/WebScraper/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Paid%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm");
-//        chromeDriver.navigate().to("file:///Users/johnshu/Desktop/WebScraper/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Grossing%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm");
-//        chromeDriver.navigate().to("file:///Users/johnshu/Desktop/WebScraper/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play/Top%20Free%20in%20Android%20Apps%20-%20Android%20Apps%20on%20Google%20Play.htm");
-
+            System.out.println("\nappList has " + appList.size() + " apps\n");
 
 
-            // Start looking through the threads
-            List<WebElement> appList = chromeDriver.findElements(By.xpath("//div[starts-with(@class, 'card-content')]"));
-            System.out.println("\n\n\t\t\t\t\t\t App List Size " + appList.size() + " **************** " + fileNameList[n] + " ****************\n\n");
+            for (String value : appList) {
+
+                //System.out.println("Value : " + value);
+
+                String searchQuery = "https://play.google.com/store/search?q=" + value + "&c=apps&hl=en";
+
+                String amazonQuery ="https://www.amazon.com/s/ref=nb_sb_ss_c_1_3?url=search-alias%3Dmobile-apps&field-keywords=" +value + "&sprefix=" +value + "%2Cmobile-apps%2C175";
+
+                chromeDriver.navigate().to(searchQuery);
+
+                List<WebElement> appData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'description')]"));
+
+                String appInfo = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                //System.out.println(appInfo);
+
+                // Instantiate a new App
+                App app = new App();
+
+                // Extract app link
+                Pattern appNamePattern = Pattern.compile("href=\"(.+?)\"");
+                Matcher matcher = appNamePattern.matcher(appInfo);
+                matcher.find();
+                String appLinkCode = matcher.group(1);
+                app.setAppPageLink("https://play.google.com" + appLinkCode);
+                //System.out.println("https://play.google.com" + appLinkCode);
 
 
+                chromeDriver.navigate().to("https://play.google.com" + appLinkCode);
 
-            String fileHeader = "Date Collected,AppName,App Creator,Number of Ratings,Star Ratings,Editor's Choice,Top Developer,5 Star,4 Star ,3 Star,2 Star,1 Star,App Price,Last Updated,Content Rating,Downloads,In App Products,Page Link\n";
-            System.out.println(fileHeader);
-
-            writer.write(fileHeader);
-
-//            WebDriver appDriver = new FirefoxDriver();
-            WebDriver appDriver = new ChromeDriver(chrome);
+                appData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'main-content')]"));
 
 
-            for (int i = 0; i < appList.size(); i++) {
-//            for ( int i=0; i < 3; i++){
-
-
-                // Extract Thread Names
-
-                try {
-
-                    String Url = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appList.get(i));
-                    //System.out.println(Url);
-
-                    System.out.println(i + ", ");
-                    // Instantiate a new App
-                    App app = new App();
+                appInfo = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
 
                     // Date Collected
+                    Date date = new Date();
                     String dateCollected = new SimpleDateFormat("MM/dd/yyyy").format(date);
                     app.setDateCollected(dateCollected);
 
 
-                    // Extract app link
-                    Pattern appLinkPattern = Pattern.compile("<a class=\"card-click-target\" href=\"(.+?)\"");
-                    Matcher matcher = appLinkPattern.matcher(Url);
-                    matcher.find();
-                    String appLink = matcher.group(1);
-//                appLink = "https://play.google.com" + appLink; // For online collection
-                    System.out.print(appLink + ", ");
-                    app.setAppPageLink(appLink);
-
-
-                    appDriver.navigate().to(appLink);
-
-                    List<WebElement> appData = appDriver.findElements(By.xpath("//div[contains(@class, 'main-content')]"));
-
-                    String appInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
-                    //System.out.println(appInfo);
-
-
                     // Extract App Name
-                    Pattern appNamePattern = Pattern.compile("<div class=\"id-app-title\" tabindex=\"0\">(.+?)<\\/div>");
+                    appNamePattern = Pattern.compile("<div class=\"id-app-title\" tabindex=\"0\">(.+?)<\\/div>");
                     matcher = appNamePattern.matcher(appInfo);
                     matcher.find();
                     String appName = matcher.group(1);
@@ -180,9 +164,9 @@ public class AppStoreScraper {
 //                app.setAppDollarPrice(appPrice);
 
                     // Extract Dollar Price  ****************************
-                    List<WebElement> appPrice = appDriver.findElements(By.xpath("//button[contains(@class, 'price buy id-track-click')]"));
+                    List<WebElement> appPrice = chromeDriver.findElements(By.xpath("//button[contains(@class, 'price buy id-track-click')]"));
                     if (appPrice.size() > 0) {
-                        String appPriceInfo = (String) ((JavascriptExecutor) appDriver).executeScript("return arguments[0].innerHTML;", appPrice.get(0));
+                        String appPriceInfo = (String) ((JavascriptExecutor) chromeDriver).executeScript("return arguments[0].innerHTML;", appPrice.get(0));
                         appPriceInfo = appPriceInfo.replace("\n", " ").trim();
                         appPriceInfo = appPriceInfo.substring(Math.max(0, appPriceInfo.length() - 25)).trim();
 //                    System.out.println("\n" + appPriceInfo);
@@ -299,42 +283,104 @@ public class AppStoreScraper {
                     // Extract inAppProducts
                     Pattern inAppProductsPattern = Pattern.compile("<div class=\"title\">In-app Products<\\/div> <div class=\"content\">(.+?) per item<\\/div>");
                     matcher = inAppProductsPattern.matcher(appInfo);
-//                matcher.find();
                     if (matcher.find()) {
                         String inAppProducts = matcher.group(1);
                         inAppProducts = inAppProducts.replace("$", "");
-                        System.out.print(inAppProducts);
+                        System.out.print(inAppProducts + ", ");
                         app.setInAppProducts(inAppProducts);
                     } else {
                         String inAppProducts = "0";
-                        System.out.print(inAppProducts);
+                        System.out.print(inAppProducts  + ", ");
                         app.setInAppProducts(inAppProducts);
                     }
+
+
+                amazoneDriver.navigate().to(amazonQuery);
+
+                List<WebElement> appSearched = amazoneDriver.findElements(By.xpath("//div[contains(@class, 'a-column a-span12 a-text-center')]"));
+
+                try {
+                    String Url = (String) ((JavascriptExecutor) amazoneDriver).executeScript("return arguments[0].innerHTML;", appSearched.get(0));
+
+                    // Extract app link from Amazon search Page
+                    Pattern appLinkPattern = Pattern.compile("<a class=\"a-link-normal a-text-normal\" href=\"(.+?)\">");
+                    matcher = appLinkPattern.matcher(Url);
+                    matcher.find();
+                    String amazonAppLink = matcher.group(1);
+//                System.out.print(amazonAppLink + ", ");
+
+                    amazoneDriver.navigate().to(amazonAppLink);
+
+                    // Extract Release and Updates Date
+                    appData = amazoneDriver.findElements(By.xpath("//td[contains(@class, 'bucket')]"));
+                    appInfo = (String) ((JavascriptExecutor) amazoneDriver).executeScript("return arguments[0].innerHTML;", appData.get(0));
+                    appInfo = appInfo.replace("\n", " ");
+//                    System.out.println("\n" + appInfo.replace("\n"," ") + "\n");
+
+                    //Release Date
+                    Pattern releaseDatePattern = Pattern.compile("<li><b>Original Release Date:<\\/b>(.+?)<\\/li>");
+                    matcher = releaseDatePattern.matcher(appInfo);
+                    matcher.find();
+                    String releaseDate = matcher.group(1).trim().replace(",", "");
+
+                    List<String> releaseDateAttributes = new ArrayList<String>(Arrays.asList(releaseDate.split(" ")));
+
+                    year = releaseDateAttributes.get(2).trim();
+                    monthString = releaseDateAttributes.get(0).trim();
+                    month = Month.valueOf(monthString).getMonthValue(monthString);
+                    day = releaseDateAttributes.get(1).trim();
+
+                    releaseDate = month + "/" + day + "/" + year;
+
+                    System.out.print(releaseDate + ", ");
+                    app.setReleaseDate(releaseDate);
+
+
+                    // Extract App Category  ****************************  Games or not
+                    List<WebElement> appCatData = amazoneDriver.findElements(By.xpath("//li[contains(@class, 'zg_hrsr_item')]"));
+
+                    if (appCatData.size() > 0) {
+                        String appCatInfo = (String) ((JavascriptExecutor) amazoneDriver).executeScript("return arguments[0].innerHTML;", appCatData.get(0));
+                        appCatInfo = appCatInfo.replace("\n", "").trim();
+//                        System.out.println("\n"+appCatInfo);
+
+                        //Extract App category
+                        Pattern appCatPattern = Pattern.compile(">&nbsp;(.+?)<\\/a>");
+                        matcher = appCatPattern.matcher(appCatInfo);
+                        matcher.find();
+                        String appCategory = matcher.group(1).trim().replace(",", "");
+                        System.out.print(appCategory + ", ");
+                        app.setAppCategory(appCategory);
+                    }
+
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
 
                     System.out.println();
                     appArrayList.add(app);
 
                     String appText = app.printToGoogleAppsFile();
-//                System.out.println(appText);
-//                System.out.println();
                     writer.write(appText);
-
-
-                } catch (Exception e) {
-                    System.err.println("Caught Exception: " + e.getMessage());
-                    continue;
-                }
 
 
             }
 
 
-            appDriver.close();
-            writer.close();
+        } catch (Exception e){
+
+            e.printStackTrace();
+
         }
 
 
+        chromeDriver.close();
+        writer.close();
+        System.exit(0);
+
     }
+
+
 
     public enum Month {
         January(1, "January"),
@@ -376,11 +422,6 @@ public class AppStoreScraper {
 
     }
 
+
+
 }
-
-
-
-
-
-
-

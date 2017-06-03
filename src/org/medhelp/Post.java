@@ -40,8 +40,8 @@ public class Post {
     public String printToFile() {
         String fileText = "";
 
-        fileText = fileText + postName.replace(",","") + ", " +
-                  postDate.replace(",","")+ ", " +
+        fileText = fileText + postName.replace(",","") + "," +
+                  postDate.replace(",","")+ "," +
                   postCommunity.replace(",","")+ "\n";
 
 

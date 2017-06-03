@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="selenium-3.4.0">
+    <ANNOTATIONS>
+      <root url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" />
+    </ANNOTATIONS>
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" />
+    </JAVADOC>
+    <NATIVE>
+      <root url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" />
+    </NATIVE>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" />
+    </SOURCES>
+    <jarDirectory url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" recursive="false" />
+    <jarDirectory url="jar://$PROJECT_DIR$/Selenium/selenium-3.4.0.zip!/" recursive="false" type="SOURCES" />
+  </library>
+</component>

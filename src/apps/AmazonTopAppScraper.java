@@ -90,7 +90,7 @@ public class AmazonTopAppScraper {
 
             List<WebElement> appList = chromeDriver.findElements(By.className("zg_itemImmersion"));
 
-            String appFileText = "Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Last updated,Content Rating, In app purchases,appPrice,appDollarPrice,, Best seller rank, App store rank,Category rank,Category,Size,Link\n";
+            String appFileText = "Date Collected, Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Last updated,In app purchases,appPrice, Best seller rank, App store rank,Category,Size,Link\n";
 
             Date date = new Date();
 

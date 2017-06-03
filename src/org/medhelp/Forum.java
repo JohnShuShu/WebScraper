@@ -51,8 +51,8 @@ public class Forum {
     public String toString() {
         return "Forum{" +
                 "forumName='" + forumName + '\'' +
-                ", forumLink='" + forumLink + '\'' +
-                ", numberOfQuestions='" + numberOfQuestions + '\'' +
+                ",forumLink='" + forumLink + '\'' +
+                ",numberOfQuestions='" + numberOfQuestions + '\'' +
                 '}';
     }
 
@@ -61,7 +61,7 @@ public class Forum {
 
         String fileText = "";
 
-        fileText = forumName.replace(",","")  + ", " + numberOfQuestions.replace(",","") + ", " + forumLink;
+        fileText = forumName.replace(",","")  + "," + numberOfQuestions.replace(",","") + "," + forumLink;
 
         return fileText;
     }

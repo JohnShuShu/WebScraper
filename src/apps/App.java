@@ -369,7 +369,9 @@ public class App {
                 isTopDeveloper() + ", " +
                 printHashMap() +
                 appPrice + ", " +
+                releaseDate + ", " +
                 lastUpdated + ", " +
+                appCategory + ", " +
                 contentRating + ", " +
                 downloads + ", " +
                 inAppProducts + ", " +

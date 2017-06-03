@@ -92,7 +92,7 @@ public class AmazonAppScraper {
 
         List<WebElement> appList = chromeDriver.findElements(By.className("s-result-item"));
 
-        String appFileText = "Name, Creator, Ratings, Stars, 5 stars, 4 stars, 3 stars, 2 stars, 1 star, Release date, Last updated,Content Rating, In app purchases,appPrice,appDollarPrice,, Best seller rank, App store rank,Category rank,Category,Size,Link\n";
+        String appFileText = "Date Collected,Name,Creator,Ratings,Stars,5 stars,4 stars,3 stars,2 stars,1 star,Release date,Last updated,In app purchases,appPrice,App store rank,Category rank,Category,Size,Link\n";
 
         Date date = new Date();
         String dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(date);
@@ -218,8 +218,8 @@ public class AmazonAppScraper {
 //                    String appDollarPrice = matcher.group(1);
                         String appDollarPrice = appPriceInfo;
                         appDollarPrice = (appDollarPrice.contains("Free Download")? "$0.00" : appDollarPrice);
-                        System.out.print(appDollarPrice + ", ");
-                        app.setAppPrice(appDollarPrice);
+                        System.out.print(appDollarPrice.replace("$","") + ", ");
+                        app.setAppPrice(appDollarPrice.replace("$",""));
                     }
 
 
@@ -254,7 +254,7 @@ public class AmazonAppScraper {
                         appCatInfo = appCatInfo.replace("\n","").trim();
 //                        System.out.println("\n"+appCatInfo);
 
-                        //Extract content ratings
+                        //Extract App category
                         Pattern appCatPattern = Pattern.compile(">&nbsp;(.+?)<\\/a>");
                         matcher = appCatPattern.matcher(appCatInfo);
                         matcher.find();
@@ -318,6 +318,16 @@ public class AmazonAppScraper {
                     matcher = appSizePattern.matcher(appInfo);
                     matcher.find();
                     String appSize = matcher.group(1).replace("\"", "");
+                    if(appSize.contains("MB")){
+                        appSize = appSize.replace("MB","");
+
+                    } else if (appSize.contains("GB")){
+                        appSize = appSize.replace("GB","");
+                        Integer appSizeNumber = Integer.parseInt(appSize);
+                        appSizeNumber = appSizeNumber * 1000;
+                        appSize = String.valueOf(appSizeNumber);
+                    }
+
                     System.out.print(appSize.trim() + ", ");
                     app.setAppSize(appSize.trim());
 

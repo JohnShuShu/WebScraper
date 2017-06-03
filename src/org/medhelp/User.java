@@ -17,8 +17,17 @@ public class User {
     public Integer pageId;
     public String gender;
     public String dateJoined;
+    public String bestAnswer;
     public Integer age;
     public Integer numberOfFriends;
+    public Integer numberOfPosts;
+    public Integer numberOfNotes;
+    public Integer numberOfStatus;
+    public Integer numberOfPhotos;
+    public Integer numberOfTrackers;
+    public Integer numberOfTickers;
+    public Integer numberOfCommunities;
+    public Integer numberOfJournals;
     public String userPageLink;
     public List<Note> friendsNotes;
     public List<Post> userPosts;
@@ -126,15 +135,89 @@ public class User {
         this.numberOfFriends = numberOfFriends;
     }
 
+    public String getBestAnswer() {
+        return bestAnswer;
+    }
+
+    public void setBestAnswer(String bestAnswer) {
+        this.bestAnswer = bestAnswer;
+    }
+
+    public Integer getNumberOfPosts() {
+        return numberOfPosts;
+    }
+
+    public void setNumberOfPosts(Integer numberOfPosts) {
+        this.numberOfPosts = numberOfPosts;
+    }
+
+    public Integer getNumberOfNotes() {
+        return numberOfNotes;
+    }
+
+    public void setNumberOfNotes(Integer numberOfNotes) {
+        this.numberOfNotes = numberOfNotes;
+    }
+
+    public Integer getNumberOfStatus() {
+        return numberOfStatus;
+    }
+
+    public void setNumberOfStatus(Integer numberOfStatus) {
+        this.numberOfStatus = numberOfStatus;
+    }
+
+    public Integer getNumberOfCommunities() {
+        return numberOfCommunities;
+    }
+
+    public void setNumberOfCommunities(Integer numberOfCommunities) {
+        this.numberOfCommunities = numberOfCommunities;
+    }
+
+    public Integer getNumberOfJournals() {
+        return numberOfJournals;
+    }
+
+    public void setNumberOfJournals(Integer numberOfJournals) {
+        this.numberOfJournals = numberOfJournals;
+    }
+
+    public Integer getNumberOfPhotos() {
+        return numberOfPhotos;
+    }
+
+    public void setNumberOfPhotos(Integer numberOfPhotos) {
+        this.numberOfPhotos = numberOfPhotos;
+    }
+
+    public Integer getNumberOfTrackers() {
+        return numberOfTrackers;
+    }
+
+    public void setNumberOfTrackers(Integer numberOfTrackers) {
+        this.numberOfTrackers = numberOfTrackers;
+    }
+
+    public Integer getNumberOfTickers() {
+        return numberOfTickers;
+    }
+
+    public void setNumberOfTickers(Integer numberOfTickers) {
+        this.numberOfTickers = numberOfTickers;
+    }
 
     public String printToFile() {
         String fileText = "";
 
-        fileText = fileText + userName + "\n";
+        fileText = fileText + "," + userName + "," + gender + "," + dateJoined + "," + numberOfStatus
+                + "," + numberOfPosts + "," + numberOfJournals + "," + numberOfNotes + "," + numberOfCommunities
+                + "," + numberOfFriends + "," + numberOfPhotos + "," + numberOfTrackers  + "," + numberOfTickers
+                + "," + userPageLink + "\n";
 
-        for(User  friend: friendsList){
-            fileText = fileText + " , " + friend.userName  + " , " + friend.userPageLink + "\n";
-        }
+//        for(User  friend: friendsList){
+//            fileText = fileText + "," + friend.userName  + "," + friend.userPageLink + "\n";
+//        }
 
         return fileText;
 

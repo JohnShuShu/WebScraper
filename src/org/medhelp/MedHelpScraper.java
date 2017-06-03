@@ -8,6 +8,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.Streams;
 
 
 import java.io.*;
@@ -39,7 +40,7 @@ public class MedHelpScraper extends Thread{
 
     public static void main(String[] args)  throws Exception {
 
-       buildUserList();
+        buildUserList();
 
         System.setProperty("webdriver.chrome.driver", dir + "/Selenium/chromedriver");
         File addonpath = new File(dir + "/Selenium/AdBlock_v2.47.crx");
@@ -91,7 +92,7 @@ public class MedHelpScraper extends Thread{
 //        forumList.add("http://www.medhelp.org/forums/Anxiety/show/71");
 //        forumList.add("http://www.medhelp.org/forums/Relationships/show/78");
 //        forumList.add("http://www.medhelp.org/forums/Stress/show/162");
-        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
+//        forumList.add("http://www.medhelp.org/forums/Nutrition/show/58");
 //        forumList.add("http://www.medhelp.org/forums/Undiagnosed-Symptoms/show/95");
 //        forumList.add("http://www.medhelp.org/forums/Heart-Disease/show/72");
 
@@ -125,23 +126,23 @@ public class MedHelpScraper extends Thread{
                 try{
                     totalThreadsData = ThreadTotalDriver.findElements(By.xpath("//span[contains(@class, 'forum_subject_count p')]"));
 
-                if(totalThreadsData.size()<1){
-                    ThreadTotalDriver.close();
-                    ThreadTotalDriver.quit();
-                } else {
-                    // Extract information about Forum size now. i.e. number of pages.
-                    String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
+                    if(totalThreadsData.size()<1){
+                        ThreadTotalDriver.close();
+                        ThreadTotalDriver.quit();
+                    } else {
+                        // Extract information about Forum size now. i.e. number of pages.
+                        String totalThreadsInfo = (String) ((JavascriptExecutor) ThreadTotalDriver).executeScript("return arguments[0].innerHTML;", totalThreadsData.get(0));
 
-                    if(totalThreadsInfo.contains("of")) {
-                        totalThreadsInfo.replace("\n","").replace(" <span id=\"IL_AD6\" class=\"IL_AD\">questions</span>","");
-                        totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
-                        String arr[] = totalThreadsInfo.split(" ");
-                        totalThreads = Integer.parseInt(arr[4]);
-                        if(totalThreads>0){
-                            totalThreads = (totalThreads/21) + (totalThreads % 21);
+                        if(totalThreadsInfo.contains("of")) {
+                            totalThreadsInfo.replace("\n","").replace(" <span id=\"IL_AD6\" class=\"IL_AD\">questions</span>","");
+                            totalThreadsInfo = totalThreadsInfo.replace("-", "").replace("of", "").replace("(", "").replace(")", "").replace("questions", "").replace("question", "").trim();
+                            String arr[] = totalThreadsInfo.split(" ");
+                            totalThreads = Integer.parseInt(arr[4]);
+                            if(totalThreads>0){
+                                totalThreads = (totalThreads/21) + (totalThreads % 21);
+                            }
                         }
                     }
-                }
 
                 }catch (Exception e){
                     continue;
@@ -339,7 +340,7 @@ public class MedHelpScraper extends Thread{
 
 //            } while (pageNumber < 11);
 //            }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
-        } while(pageNumber < totalThreads  );
+            } while(pageNumber < totalThreads  );
 
 
             //******************************* END OF PAGE SCRAPPING FOR THREADS ************************************************//
@@ -509,19 +510,24 @@ public class MedHelpScraper extends Thread{
                         user.setUserName(attributes.get(0).trim());
                         user.setUserPageLink(attributes.get(1).trim());
 
-                        if (isInt(attributes.get(2).trim())) {
-                            user.setPageId(Integer.parseInt(attributes.get(2).trim()));
-                        }   else {
-                            user.setPageId(0);
+                        if(attributes.size()>2) {
+                            if (isInt(attributes.get(2).trim())) {
+                                user.setPageId(Integer.parseInt(attributes.get(2).trim()));
+                            } else {
+                                user.setPageId(0);
 
+                            }
                         }
 
-                        if (isInt(attributes.get(3).trim())) {
-                            user.setUniqueId(Integer.parseInt(attributes.get(3).trim()));
-                        }   else {
-                            user.setUniqueId(0);
+                        if(attributes.size()>3) {
+                            if (isInt(attributes.get(3).trim())) {
+                                user.setUniqueId(Integer.parseInt(attributes.get(3).trim()));
+                            } else {
+                                user.setUniqueId(0);
 
+                            }
                         }
+
 
                         if (!doesUserExist(userList, user)){
                             System.out.println("\n\nAdding new User");
@@ -773,8 +779,8 @@ public class MedHelpScraper extends Thread{
                                     isAdded = commentPagesData.addAll(chromeDriver.findElements(By.className("post_entry")));
 
                                     if(!isAdded){
-                                            threadData = chromeDriver.findElements(By.className("question_by"));
-                                        }
+                                        threadData = chromeDriver.findElements(By.className("question_by"));
+                                    }
                                     i = 0;
                                     commentPagesNumber--;
                                 }
@@ -910,19 +916,41 @@ public class MedHelpScraper extends Thread{
 //        WebDriver chromeDriver = new FirefoxDriver();
         try{
 
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("UsersComplete-" + dateString + ".csv"), "utf-8"));
+
+
+            String fileHeading = "User Name" + "," + "Gender" + "," + "Date Joined"
+                    + "," + "Status count" + "," + "Posts Count" + "," + "Journals Count" + "," + "Notes Count"
+                    + "," + "Communities count" + "," + "Friends count" + "," + "Photos count" + "," + "Trackers count" + "," + "Tickers count"
+                    + "," + "Profile Page" + "\n";
 
             // File String to save to file object
             String userFileText = "";
-
             String userIds = "";
             String userInfo = "";
             String userNameInfo = "";
+            String bestAnswerInfo = "";
+            String statusInfo = "";
+            String notesInfo = "";
+            String friendsInfo = "";
+            String postsInfo = "";
+            String communitiesInfo = "";
+            String journalInfo = "";
 
             // WebElement from Selenium
             List<WebElement> userPageIdData;
             List<WebElement> userInfoData;
+            List<WebElement> userBestAnswerData;
             List<WebElement> userNameData;
             List<WebElement> paginationNumber;
+            List<WebElement> userStatusData;
+            List<WebElement> userNotesData;
+            List<WebElement> userFriendsData;
+            List<WebElement> userCommunitiesData;
+            List<WebElement> userPostsData;
+            List<WebElement> userJournalData;
+            List<WebElement> userVariablesData;
+
 
 
             // List to hold new found users.
@@ -973,140 +1001,463 @@ public class MedHelpScraper extends Thread{
                     userNameData = chromeDriver.findElements(By.className("page_title"));
                     userPageIdData = chromeDriver.findElements(By.className("pp_r_txt_sel"));
                     userInfoData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'bottom float_fix')]//div[contains(@class,'section')]"));
+                    userBestAnswerData = chromeDriver.findElements(By.xpath("//div[contains(@id, 'best_answers_hover')]//div"));
+//                    userStatusData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_status')]//div[contains(@class,'mw_title')]"));
+//                    userNotesData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_notes_list')]//div[contains(@class,'mw_title')]"));
+//                    userFriendsData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_friends_list')]//div[contains(@class,'mw_title')]"));
+//                    userCommunitiesData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_community_list')]//div[contains(@class,'mw_title')]"));
+//                    userPostsData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_posts_list')]//div[contains(@class,'mw_title')]"));
+//                    userJournalData = chromeDriver.findElements(By.xpath("//div[contains(@class, 'pp_app_journals_list')]//div[contains(@class,'mw_title')]"));
 
+
+
+                    userVariablesData = chromeDriver.findElements(By.xpath("//div[contains(@class,'mw_title')]"));
+                    userVariablesData.remove(0);
+
+                    for(WebElement variable: userVariablesData){
+
+                        String userVariableInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", variable);
+//                        System.out.println(userVariableInfo);
+
+                        String userTemp[] = userVariableInfo.split(" ", 2); // 2 limits the number of returning parts, so just the first space is used to split.
+                        String condition = userTemp[0];
+                        String userVar = " ";
+
+                        switch(condition) {
+                            case "About" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(", "").replace(")", "");
+                                    userVar = (userVar.length() > 0) ? userVar : " ";
+
+//                                    System.out.println("Username: " + userVar);
+                                    user.setUserName(userVar);
+                                }catch (Exception e){
+
+                                }
+                                break;
+                            case "Status" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(", "").replace(")", "");
+                                    userVar = (userVar.length() > 0) ? userVar : "0";
+
+//                                    System.out.println("Status: " + userVar);
+                                    user.setNumberOfStatus(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Posts" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Posts: " + userVar);
+                                    user.setNumberOfPosts(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "All" :
+                                try {
+                                    userVar = userTemp[1].replace("...","").replace("Journal Entries","").trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Journals: " + userVar);
+                                    user.setNumberOfJournals(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Notes" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Notes: " + userVar);
+                                    user.setNumberOfNotes(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Photos" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Photos: " + userVar);
+                                    user.setNumberOfPhotos(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Communities" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Communities: " + userVar);
+                                    user.setNumberOfCommunities(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Trackers" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Trackers: " + userVar);
+                                    user.setNumberOfTrackers(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Tickers" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Tickers: " + userVar);
+                                    user.setNumberOfTickers(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            case "Friends" :
+                                try {
+                                    userVar = userTemp[1].trim().replace("(","").replace(")","");
+                                    userVar = (userVar.length()>0) ? userVar : "0" ;
+
+//                                    System.out.println("Friends: " + userVar);
+                                    user.setNumberOfFriends(Integer.valueOf(userVar));
+                                } catch (Exception e){
+
+                                }
+                                break;
+                            default :
+//                                System.out.println("No matching Value");
+                        }
+
+                    }
 
                     userNameInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userNameData.get(0));
                     userIds = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userPageIdData.get(0));
                     userInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userInfoData.get(0));
+                    bestAnswerInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", (userBestAnswerData.isEmpty()) ? " " : userBestAnswerData.get(0) );
+//                    statusInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userStatusData.get(0));
+//                    notesInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userNotesData.get(0));
+//                    friendsInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userFriendsData.get(0));
+//                    postsInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userPostsData.get(0));
+//                    communitiesInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userCommunitiesData.get(0));
+//                    journalInfo = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", userJournalData.get(0));
+
+
+
+
 
                     // Extracting user page Id.
                     Pattern userPageIdPattern = Pattern.compile("<a href=\".+?personal_page_id=(.+?)\">");
                     Matcher matcher = userPageIdPattern.matcher(userIds);
                     matcher.find();
                     String userPageId = matcher.group(1);
-                    System.out.println("userPageId: " + userPageId);
+//                    System.out.println("userPageId: " + userPageId);
                     user.setPageId(Integer.valueOf(userPageId));
 
 
-                    // Extracting user gender.
-                    Pattern userGenderPattern = Pattern.compile("<span>(.+?)<\\/span>");
-                    matcher = userGenderPattern.matcher(userInfo);
-                    matcher.find();
-                    String userGender = matcher.group(1);
-                    String gender[] = userGender.split(" ", 2);
-                    userGender = gender[0];
-                    System.out.println("userGender: " + userGender.replace(",",""));
-                    user.setGender(userGender);
+                    try {
+                        // Extracting user gender.
+                        String userGender = "";      // Pre declare and set the User gender
+                        user.setGender(userGender);  // to nothing just incase the program doesn't get into the loop
+                        Pattern userGenderPattern = Pattern.compile("<span>(.+?)<\\/span>");
+                        matcher = userGenderPattern.matcher(userInfo);
+                        matcher.find();
+                        if (!(matcher.group(1).isEmpty())) {
+                            userGender = matcher.group(1);
+                            String gender[] = userGender.split(" ", 2);
+                            userGender = gender[0].replace(",","");
+//                            System.out.println("userGender: " + userGender.replace(",", ""));
+                            user.setGender(userGender.replace(",", ""));
+                        }
+                    }
+                    catch (Exception e) {
+//                        System.err.println("Caught Exception: " + e.getMessage());
+//                        e.getStackTrace();
+//                        e.printStackTrace();
+                    }
 
-                    // Extracting user date joined.
-                    Pattern userDateJoinedPattern = Pattern.compile("since( .+? .+.?)");
-                    matcher = userDateJoinedPattern.matcher(userInfo);
-                    matcher.find();
-                    String userDateJoined = matcher.group(1);
-                    System.out.println("DateJoined: " + userDateJoined.trim());
-                    user.setDateJoined(userDateJoined.trim());
+
+
+                    try {
+                        // Extracting user date joined.
+                        String userDateJoined = "";
+                        user.setDateJoined(userDateJoined);
+                        Pattern userDateJoinedPattern = Pattern.compile("since( .+? .+.?)");
+                        matcher = userDateJoinedPattern.matcher(userInfo);
+                        matcher.find();
+                        if (!(matcher.group(1).isEmpty())) {
+                            userDateJoined = matcher.group(1);
+//                            System.out.println("DateJoined: " + userDateJoined.trim());
+                            user.setDateJoined(userDateJoined.trim());
+                        }
+                    }
+                    catch (Exception e) {
+//                        System.err.println("Caught Exception: " + e.getMessage());
+//                        e.getStackTrace();
+//                        e.printStackTrace();
+                    }
+
+
+
+                    try{
+
+                        // Extracting Best Answers.
+                        String bestAnswer =  "0";
+                        user.setBestAnswer(bestAnswer);
+                        Pattern userBestAnswerPattern = Pattern.compile("<span class=\"title\">.+?<\\/span>(\\s\\d*)");
+                        matcher = userBestAnswerPattern.matcher(bestAnswerInfo);
+                        matcher.find();
+                        if (!(matcher.group(1).isEmpty())) {
+                            bestAnswer = matcher.group(1);
+//                            System.out.println("bestAnswer: " + bestAnswer.replace(",", "").trim());
+                            user.setBestAnswer(bestAnswer.trim());
+                        }
+                    }
+                    catch (Exception e) {
+//                        System.err.println("Caught Exception: " + e.getMessage());
+//                        e.getStackTrace();
+//                        e.printStackTrace();
+                    }
+
+//                    try{
+//
+//                        // Extracting status number.
+//                        String status =  "0";
+//                        user.setNumberOfStatus(Integer.valueOf(status.trim()));
+//                        Pattern userStatusPattern = Pattern.compile("Status \\((.+?)\\)");
+//                        matcher = userStatusPattern.matcher(statusInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            status = matcher.group(1);
+//                            System.out.println("# Status: " + status.trim());
+//                            user.setNumberOfStatus(Integer.valueOf(status.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+//
+//
+//                    try{
+//
+//                        // Extracting user notes number.
+//                        String notes = "0";
+//                        user.setNumberOfNotes(Integer.valueOf(notes.trim()));
+//                        Pattern userNotesPattern = Pattern.compile("Notes \\((.+?)\\)");
+//                        matcher = userNotesPattern.matcher(notesInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            notes = matcher.group(1);
+//                            System.out.println("User notes: " + notes.trim());
+//                            user.setNumberOfNotes(Integer.valueOf(notes.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+//
+//                    try{
+//
+//                        // Extracting user friends number.
+//                        String friends = "0";
+//                        user.setNumberOfFriends(Integer.valueOf(friends.trim()));
+//                        Pattern userFriendsPattern = Pattern.compile("Friends \\((.+?)\\)");
+//                        matcher = userFriendsPattern.matcher(friendsInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            friends = matcher.group(1);
+//                            System.out.println("User friends: " + friends.trim());
+//                            user.setNumberOfFriends(Integer.valueOf(friends.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+//
+//                    try{
+//
+//                        // Extracting posts number.
+//                        String posts = "0";
+//                        user.setNumberOfPosts(Integer.valueOf(posts.trim()));
+//                        Pattern userPostsPattern = Pattern.compile("Posts \\((.+?)\\)");
+//                        matcher = userPostsPattern.matcher(postsInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            posts = matcher.group(1);
+//                            System.out.println("# Posts: " + posts.trim());
+//                            user.setNumberOfPosts(Integer.valueOf(posts.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+//
+//                    try{
+//
+//                        // Extracting user communities number.
+//                        String communities = "0";
+//                        user.setNumberOfCommunities(Integer.valueOf(communities.trim()));
+//                        Pattern userCommunitiesPattern = Pattern.compile("Communities \\((.+?)\\)");
+//                        matcher = userCommunitiesPattern.matcher(communitiesInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            communities = matcher.group(1);
+//                            System.out.println("# Communities: " + communities.trim());
+//                            user.setNumberOfCommunities(Integer.valueOf(communities.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+//
+//                    try{
+//
+//                        // Extracting user journal number.
+//                        String journal = "0";
+//                        user.setNumberOfJournals(Integer.valueOf(journal.trim()));
+//                        Pattern userJournalPattern = Pattern.compile("All Journal Entries \\((.+?)\\)...");
+//                        matcher = userJournalPattern.matcher(journalInfo);
+//                        matcher.find();
+//                        if(!(matcher.group(1).isEmpty())) {
+//                            journal = matcher.group(1);
+//                            System.out.println("# Journal: " + journal.trim());
+//                            user.setNumberOfJournals(Integer.valueOf(journal.trim()));
+//                        }
+//                    }
+//                    catch (Exception e) {
+////                        System.err.println("Caught Exception: " + e.getMessage());
+////                        e.getStackTrace();
+////                        e.printStackTrace();
+//                    }
+
+
+
+
+//                    userFileText = userFileText + user.printToFile();
+//
+//                    writer.write(userFileText);
+
 
 
                     //******************************* GATHER USER's FRIEND LIST ************************************************//
-                    System.out.println("\n\n\t\t\t\t**************** Staring to parse user number " + index + ": " + user.getUserName() + "'s friends list ... **************** \n\n");
-
-//                chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber + "&personal_page_id=" + user.getPageId() );
-//                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
-                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId());
-                    chromeDriver.manage().deleteAllCookies();
-
-                    // Check if user has any friends ?
-                    List<WebElement> anyFriends = chromeDriver.findElements(By.xpath("//div[starts-with(@class, 'friend_box')]"));
-
-                    System.out.println("Number of friends : " + anyFriends.size());
-
-                    // Check if friends list spans multiple pages
-                    paginationNumber = chromeDriver.findElements(By.xpath("//a[starts-with(@class, 'msg')]"));
-                    System.out.println(paginationNumber.size() + " pages of friends");
-
-
-                    do {
-
-                        chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
-                        chromeDriver.manage().deleteAllCookies();
-
-                        // Loop to find all the friends
-
-                        for ( int i=0; i < anyFriends.size(); i++){
-
-                            anyFriends = chromeDriver.findElements(By.xpath("//div[starts-with(@class, 'friend_box')]"));
-                            String friendsData = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", anyFriends.get(i));
-
-                            // New user object
-                            User friend = new User();
-
-                            // Extract Friend Names
-                            Pattern friendNamePattern = Pattern.compile("<a href=\".+?\" id=\".+?\">(.+?)<\\/a>");
-                            matcher = friendNamePattern.matcher(friendsData);
-                            matcher.find();
-                            String friendName = matcher.group(1);
-                            System.out.print(friendName + ", ");
-                            friend.setUserName(friendName);
-
-                            // Extract Friend page Links
-                            Pattern friendPageLinkPattern = Pattern.compile("<a href=\"(.+?)\" id=\"user.+?\">");
-                            matcher = friendPageLinkPattern.matcher(friendsData);
-                            matcher.find();
-                            String friendPageLink = matcher.group(1);
-                            friendPageLink = "http://www.medhelp.org" + friendPageLink;
-                            System.out.print(friendPageLink + ", ");
-                            friend.setUserPageLink(friendPageLink);
-
-                            // Extracting Friend unique Id.
-//                        Pattern friendUniqueIdPattern = Pattern.compile("<a href=\".+?\" id=\"user_(.+?)_.+?\">");
-//                        matcher = friendUniqueIdPattern.matcher(friendsData);
-//                        matcher.find();
-//                        String friendUniqueId = matcher.group(1);
-//                        System.out.println(friendUniqueId);
-//                        friend.setUniqueId(Integer.valueOf(friendUniqueId));
-
-                            Pattern friendUniqueIdPattern = Pattern.compile("<a href=\".+?\" id=\"(.+?)\">");
-                            matcher = friendUniqueIdPattern.matcher(friendsData);
-                            matcher.find();
-                            String friendUniqueId = matcher.group(1);
-                            String arr[] = friendUniqueId.split("_");
-                            friendUniqueId = arr[1];
-                            System.out.println(friendUniqueId);
-                            friend.setUniqueId(Integer.valueOf(friendUniqueId));
-
-                            // Add user to Set of Friends.
-                            friendList.add(friend);
-
-//                            if (!doesUserExist(completeUsersList, friend)){
-//                                System.out.println("Adding new User ...");
-//                                completeUsersList.add(friend); // *************************** REPLACE WITH friend
-//                            }
-                        }
-
-                        pageNumber++;
-                        System.out.println("\n\nUser Page number is: " + pageNumber);
-
-                    }while (pageNumber < (paginationNumber.size()+1));
-
-                    user.setFriendsList(friendList);
-
-                    System.out.println("User :" + user.getUserName() + " has " + user.friendsList.size() + " Friends");
-
-                    System.out.println("Writing user friend data to the file");
-
-                    userFileText = user.getUserName() +  ", " + user.getUserPageLink() + ", " + user.getPageId() + ", " + user.getFriendsList().size() + "\n";
-
-                    for(User friend: friendList){
-                        userFileText = userFileText + " , , , , " + friend.getUserName() + ", " + friend.getUserPageLink() + "\n";
-                    }
-
-                    // Get file and write user friends to the file
-                    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file.getAbsoluteFile(), true));
-
-                    bufferedWriter.write(userFileText);
-                    bufferedWriter.close();
-
-                    System.out.println(userFileText);
+//                    System.out.println("\n\n\t\t\t\t**************** Staring to parse user number " + index + ": " + user.getUserName() + "'s friends list ... **************** \n\n");
+//
+////                chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber + "&personal_page_id=" + user.getPageId() );
+////                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
+//                    chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId());
+//                    chromeDriver.manage().deleteAllCookies();
+//
+//                    // Check if user has any friends ?
+//                    List<WebElement> anyFriends = chromeDriver.findElements(By.xpath("//div[starts-with(@class, 'friend_box')]"));
+//
+//                    System.out.println("Number of friends : " + anyFriends.size());
+//
+//                    // Check if friends list spans multiple pages
+//                    paginationNumber = chromeDriver.findElements(By.xpath("//a[starts-with(@class, 'msg')]"));
+//                    System.out.println(paginationNumber.size() + " pages of friends");
+//
+//
+//                    do {
+//
+//                        chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
+//                        chromeDriver.manage().deleteAllCookies();
+//
+//                        // Loop to find all the friends
+//
+//                        for ( int i=0; i < anyFriends.size(); i++){
+//
+//                            anyFriends = chromeDriver.findElements(By.xpath("//div[starts-with(@class, 'friend_box')]"));
+//                            String friendsData = (String)((JavascriptExecutor)chromeDriver).executeScript("return arguments[0].innerHTML;", anyFriends.get(i));
+//
+//                            // New user object
+//                            User friend = new User();
+//
+//                            // Extract Friend Names
+//                            Pattern friendNamePattern = Pattern.compile("<a href=\".+?\" id=\".+?\">(.+?)<\\/a>");
+//                            matcher = friendNamePattern.matcher(friendsData);
+//                            matcher.find();
+//                            String friendName = matcher.group(1);
+//                            System.out.print(friendName + ", ");
+//                            friend.setUserName(friendName);
+//
+//                            // Extract Friend page Links
+//                            Pattern friendPageLinkPattern = Pattern.compile("<a href=\"(.+?)\" id=\"user.+?\">");
+//                            matcher = friendPageLinkPattern.matcher(friendsData);
+//                            matcher.find();
+//                            String friendPageLink = matcher.group(1);
+//                            friendPageLink = "http://www.medhelp.org" + friendPageLink;
+//                            System.out.print(friendPageLink + ", ");
+//                            friend.setUserPageLink(friendPageLink);
+//
+//                            // Extracting Friend unique Id.
+////                        Pattern friendUniqueIdPattern = Pattern.compile("<a href=\".+?\" id=\"user_(.+?)_.+?\">");
+////                        matcher = friendUniqueIdPattern.matcher(friendsData);
+////                        matcher.find();
+////                        String friendUniqueId = matcher.group(1);
+////                        System.out.println(friendUniqueId);
+////                        friend.setUniqueId(Integer.valueOf(friendUniqueId));
+//
+//                            Pattern friendUniqueIdPattern = Pattern.compile("<a href=\".+?\" id=\"(.+?)\">");
+//                            matcher = friendUniqueIdPattern.matcher(friendsData);
+//                            matcher.find();
+//                            String friendUniqueId = matcher.group(1);
+//                            String arr[] = friendUniqueId.split("_");
+//                            friendUniqueId = arr[1];
+//                            System.out.println(friendUniqueId);
+//                            friend.setUniqueId(Integer.valueOf(friendUniqueId));
+//
+//                            // Add user to Set of Friends.
+//                            friendList.add(friend);
+//
+////                            if (!doesUserExist(completeUsersList, friend)){
+////                                System.out.println("Adding new User ...");
+////                                completeUsersList.add(friend); // *************************** REPLACE WITH friend
+////                            }
+//                        }
+//
+//                        pageNumber++;
+//                        System.out.println("\n\nUser Page number is: " + pageNumber);
+//
+//                    }while (pageNumber < (paginationNumber.size()+1));
+//
+//                    user.setFriendsList(friendList);
+//
+//                    System.out.println("User :" + user.getUserName() + " has " + user.friendsList.size() + " Friends");
+//
+//                    System.out.println("Writing user friend data to the file");
+//
+//                    userFileText = user.getUserName() +  ", " + user.getUserPageLink() + ", " + user.getPageId() + ", " + user.getFriendsList().size() + "\n";
+//
+//                    for(User friend: friendList){
+//                        userFileText = userFileText + " , , , , " + friend.getUserName() + ", " + friend.getUserPageLink() + "\n";
+//                    }
+//
+//                    // Get file and write user friends to the file
+//                    BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file.getAbsoluteFile(), true));
+//
+//                    bufferedWriter.write(userFileText);
+//                    bufferedWriter.close();
+//
+//                    System.out.println(userFileText);
 
                 }catch (Exception e) {
                     System.err.println("Caught Exception: " + e.getMessage());
@@ -1126,10 +1477,15 @@ public class MedHelpScraper extends Thread{
 //             dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
 
+
+
+                userFileText = userFileText + fileHeading;
+
                 // Writing out data to file
-                Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("UsersComplete-" + dateString + ".csv"), "utf-8"));
+
                 for(User user: completeUsersList){
-                    userFileText = userFileText + user.getUserName() + ", " + user.getUserPageLink() + "," + user.getPageId() + "\n";
+//                    userFileText = userFileText + user.getUserName() + ", " + user.getUserPageLink() + "," + user.getPageId() + "\n";
+                    userFileText = userFileText + user.printToFile();
                 }
 
                 System.out.println(userFileText);
@@ -1369,6 +1725,7 @@ public class MedHelpScraper extends Thread{
 //        WebDriver chromeDriver = new FirefoxDriver();
 
         String friendEntryInfo = "";
+        Integer userNumber = 0;
 
         // WebElement from Selenium
         List<WebElement> friendEntryData;
@@ -1390,11 +1747,13 @@ public class MedHelpScraper extends Thread{
         // Looping through all the threads already obtained to gather detailed data. "thread" is the individual thread that is handled during each loop iteration
         for(User user: userList){
 
+            userNumber++;
+
             Integer pageNumber = 1;
 
             List<User> friendList = new ArrayList<User>();
 
-            System.out.println("\n\n" + user.userName + " with link " + "http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
+            System.out.println("\n\n" + user.userName + " user number: "+ userNumber + " with link " + "http://www.medhelp.org/friendships/list/" + user.getUniqueId() +"?page=" + pageNumber);
 
             try{
 
@@ -1403,6 +1762,7 @@ public class MedHelpScraper extends Thread{
 //                File addonpath = new File(dir+"/Selenium/AdBlock_v2.47.crx");
 //                firefoxprofile.addExtension(addonpath);
 //                chromeDriver = new FirefoxDriver(firefoxprofile);
+
                 // Go to the Friend Page itself and collect data on the comments left on the page.
                 chromeDriver.navigate().to("http://www.medhelp.org/friendships/list/" + user.getUniqueId() + "?page=" + pageNumber);
                 chromeDriver.manage().deleteAllCookies();
@@ -1680,14 +2040,14 @@ public class MedHelpScraper extends Thread{
 
                             Boolean isAdded = Boolean.FALSE;
 //                            if(postPagesNumber < paginationNumber){
-                                chromeDriver.navigate().to("http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + postPagesNumber);
-                                postEntryData = chromeDriver.findElements(By.className("user_post"));
-                                isAdded = postPagesData.addAll(chromeDriver.findElements(By.className("user_post")));
+                            chromeDriver.navigate().to("http://www.medhelp.org/user_posts/list/" + user.getUniqueId() +"?page=" + postPagesNumber);
+                            postEntryData = chromeDriver.findElements(By.className("user_post"));
+                            isAdded = postPagesData.addAll(chromeDriver.findElements(By.className("user_post")));
 
 //                                if(!isAdded){
 //                                    postEntryData = chromeDriver.findElements(By.className("question_by"));
 //                                }
-                                i = 0;
+                            i = 0;
 //                            }
 
                         }
@@ -1790,42 +2150,47 @@ public class MedHelpScraper extends Thread{
 
         dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
-        dateString = "2016-04-22 07-27-25-Depression 2"; //new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        //dateString = "2016-04-22 07-27-25-Depression 2";
+        dateString = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
 
         timeStamp = dateString;
 
-        forumName = "Depression"; // Change depeending on Forum
+        forumName = "Relationship"; // Change depeending on Forum
 
         // ***
-        userList = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/Data to Analyze 05.25.2015/Depression/UsersComplete-2016-04-22 07-27-25-Depression.csv");
+        userList = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/Medhelp/Relationship-2016-01-22 17-16-53/UsersAndProfiles.csv");
+
 
         System.out.println("userList size after thread scrape : " + userList.size());
 
-//        userList = scrapeUsers(userList);
-
-        userList = scrapeNotes(userList);
+        userList = scrapeUsers(userList);
+//        userList = scrapeNotes(userList);
 
 //        System.out.println("*************NOTESCRAPE :NEW USER LIST **************");
 //        for (User user: userList){
 //            System.out.println(user.userName + ",");
 //        }
 
-        System.out.println("userList size after notes scrape : " + userList.size());
+//        System.out.println("userList size after notes scrape : " + userList.size());
 
 
-        userList = scrapePosts(userList);
+//        userList = scrapePosts(userList);
 
 //        System.out.println("*************POSTCRAPE :NEW USER LIST **************");
 //        for (User user: userList){
 //            System.out.println(user.userName + ",");
 //        }
 
-        System.out.println("userList size after posts scrape : " + userList.size());
+//        System.out.println("userList size after posts scrape : " + userList.size());
 
 
-        userList = scrapeFriends(userList);
+//        userList = scrapeFriends(userList);
 
 // ***
+        System.out.println("Starting time: " + dateString);
+        String endingTime = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date());
+        System.out.println("Ending time: " + new SimpleDateFormat("yyyy-MM-dd HH-mm-ss").format(new Date()));
+
         System.exit(0);
         return userList;
 

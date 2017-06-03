@@ -158,15 +158,15 @@ public class Thread {
     public String printToFile() {
         String fileText = "";
 
-        fileText = fileText + threadName.replace(",","")  + ", " +
-                  threadLink+ ", " +
-                  dateCreated.replace(",","")+ ", " +
-                  threadCreator.userName.replace(",","")+ ", " +
-                  threadCreator.getUniqueId()+  ", " +
-                  threadCreator.getPageId()+  ", " +
-                  threadCreatorLink+  ", " +
-                  threadNumber+  ", " +
-                  commentsNumber+ ", " +
+        fileText = fileText + threadName.replace(",","")  + "," +
+                  threadLink+ "," +
+                  dateCreated.replace(",","")+ "," +
+                  threadCreator.userName.replace(",","")+ "," +
+                  threadCreator.getUniqueId()+  "," +
+                  threadCreator.getPageId()+  "," +
+                  threadCreatorLink+  "," +
+                  threadNumber+  "," +
+                  commentsNumber+ "," +
                   printCommentors()+ "\n";
 
         return fileText;
