@@ -1,7 +1,6 @@
 package org.medhelp;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created with IntelliJ IDEA.
@@ -11,6 +10,10 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 public class User {
+//
+//    String fileHeading = "User Name" + "," + "," + "Date Joined" + "Birth Date" + "," + "Posts Count" + "," + "Posts Frequency"
+//            + "," + "Posts Percentage"+ "," + "Time online"  + "," + "Reputation" + "," + "Prestige"
+//            + "," + "Reported Posts" + "," + "Awards" + "," + "Profile Page" + "\n";
 
     public String userName;
     public Integer uniqueId;
@@ -18,7 +21,6 @@ public class User {
     public String gender;
     public String dateJoined;
     public String bestAnswer;
-    public Integer age;
     public Integer numberOfFriends;
     public Integer numberOfPosts;
     public Integer numberOfNotes;
@@ -28,6 +30,17 @@ public class User {
     public Integer numberOfTickers;
     public Integer numberOfCommunities;
     public Integer numberOfJournals;
+    public Double postFrequency;
+    public Double postPercentage;
+    public String timeOnline;
+    public String timeInSecs;
+    public String reputation;
+    public String prestige;
+    public Integer reportedPosts;
+    public String stars;
+    public Integer age;
+    public String birthDate;
+    public String awards;
     public String userPageLink;
     public List<Note> friendsNotes;
     public List<Post> userPosts;
@@ -47,7 +60,7 @@ public class User {
     }
 
     public void setUserName(String userName) {
-        this.userName = userName;
+        this.userName = userName.replace(",","");
     }
 
     public String getGender() {
@@ -55,7 +68,7 @@ public class User {
     }
 
     public void setGender(String gender) {
-        this.gender = gender;
+        this.gender = gender.replace(",","");
     }
 
     public String getDateJoined() {
@@ -63,7 +76,7 @@ public class User {
     }
 
     public void setDateJoined(String dateJoined) {
-        this.dateJoined = dateJoined;
+        this.dateJoined = dateJoined.replace(",","");
     }
 
     public Integer getUniqueId() {
@@ -136,11 +149,11 @@ public class User {
     }
 
     public String getBestAnswer() {
-        return bestAnswer;
+        return bestAnswer.replace(",","");
     }
 
     public void setBestAnswer(String bestAnswer) {
-        this.bestAnswer = bestAnswer;
+        this.bestAnswer = bestAnswer.replace(",","");
     }
 
     public Integer getNumberOfPosts() {
@@ -207,6 +220,86 @@ public class User {
         this.numberOfTickers = numberOfTickers;
     }
 
+    public Double getPostFrequency() {
+        return postFrequency;
+    }
+
+    public void setPostFrequency(Double postFrequency) {
+        this.postFrequency = postFrequency;
+    }
+
+    public Double getPostPercentage() {
+        return postPercentage;
+    }
+
+    public void setPostPercentage(Double postPercentage) {
+        this.postPercentage = postPercentage;
+    }
+
+    public String getTimeOnline() {
+        return timeOnline;
+    }
+
+    public void setTimeOnline(String timeOnline) {
+        this.timeOnline = timeOnline.replace(",","");
+    }
+
+    public String getReputation() {
+        return reputation;
+    }
+
+    public void setReputation(String reputation) {
+        this.reputation = reputation.replace(",","");
+    }
+
+    public String getPrestige() {
+        return prestige;
+    }
+
+    public void setPrestige(String prestige) {
+        this.prestige = prestige.replace(",","");
+    }
+
+    public Integer getReportedPosts() {
+        return reportedPosts;
+    }
+
+    public void setReportedPosts(Integer reportedPosts) {
+        this.reportedPosts = reportedPosts;
+    }
+
+    public String getBirthDate() {
+        return birthDate;
+    }
+
+    public void setBirthDate(String birthDate) {
+        this.birthDate = birthDate.replace(",","");
+    }
+
+    public String getAwards() {
+        return awards;
+    }
+
+    public void setAwards(String awards) {
+        this.awards = awards.replace(",","");
+    }
+
+    public String getStars() {
+        return stars;
+    }
+
+    public void setStars(String stars) {
+        this.stars = stars.replace(",","");
+    }
+
+    public String getTimeInSecs() {
+        return timeInSecs;
+    }
+
+    public void setTimeInSecs(String timeInSecs) {
+        this.timeInSecs = timeInSecs;
+    }
+
     public String printToFile() {
         String fileText = "";
 
@@ -221,5 +314,58 @@ public class User {
 
         return fileText;
 
+    }
+
+    public String printToFileHackForums() {
+        String fileText = "";
+
+        String fileHeading = "User_Name" + "," + "Date_Joined" + "," + "Birth_Date" + "," + "Age" + "," + "Posts_Count" + "," + "Posts_Frequency"
+                + "," + "Posts_Percentage"+ "," + "Time_online"  + "," + "Time_in_Secs"  + "," + "Reputation" + "," + "Prestige"
+                + "," + "Awards" + "," + "Stars" + "," + "Profile_Page" + "\n";
+
+
+        fileText = userName + "," + dateJoined + "," + birthDate + "," + age + "," + numberOfPosts + "," +  postFrequency
+                + "," + postPercentage + "," + timeOnline + "," + timeInSecs + "," + reputation + "," + prestige
+                + "," + awards + "," + stars + "," + userPageLink  + "\n";
+
+
+        return fileText;
+
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                ", userName='" + userName + '\'' +
+                ", uniqueId=" + uniqueId +
+                ", pageId=" + pageId +
+                ", gender='" + gender + '\'' +
+                ", dateJoined='" + dateJoined + '\'' +
+                ", bestAnswer='" + bestAnswer + '\'' +
+                ", numberOfFriends=" + numberOfFriends +
+                ", numberOfPosts=" + numberOfPosts +
+                ", numberOfNotes=" + numberOfNotes +
+                ", numberOfStatus=" + numberOfStatus +
+                ", numberOfPhotos=" + numberOfPhotos +
+                ", numberOfTrackers=" + numberOfTrackers +
+                ", numberOfTickers=" + numberOfTickers +
+                ", numberOfCommunities=" + numberOfCommunities +
+                ", numberOfJournals=" + numberOfJournals +
+                ", postFrequency=" + postFrequency +
+                ", postPercentage=" + postPercentage +
+                ", timeOnline='" + timeOnline + '\'' +
+                ", timeInSecs='" + timeInSecs + '\'' +
+                ", reputation='" + reputation + '\'' +
+                ", prestige='" + prestige + '\'' +
+                ", reportedPosts=" + reportedPosts +
+                ", stars=" + stars +
+                ", age=" + age +
+                ", birthDate='" + birthDate + '\'' +
+                ", awards='" + awards + '\'' +
+                ", userPageLink='" + userPageLink + '\'' +
+                ", friendsNotes=" + friendsNotes +
+                ", userPosts=" + userPosts +
+                ", friendsList=" + friendsList +
+                '}';
     }
 }
