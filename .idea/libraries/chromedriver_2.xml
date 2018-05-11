@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="chromedriver 2">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/Selenium/chromedriver 2.33" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

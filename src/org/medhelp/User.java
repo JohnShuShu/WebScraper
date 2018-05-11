@@ -45,6 +45,8 @@ public class User {
     public List<Note> friendsNotes;
     public List<Post> userPosts;
     public List<User> friendsList;
+    public String country;
+    public String tenure;
 
 
     public User(){
@@ -300,6 +302,24 @@ public class User {
         this.timeInSecs = timeInSecs;
     }
 
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getTenure() {
+        return tenure;
+    }
+
+    public void setTenure(String tenure) {
+        this.tenure = tenure;
+    }
+
+
     public String printToFile() {
         String fileText = "";
 
@@ -327,6 +347,16 @@ public class User {
         fileText = userName + "," + dateJoined + "," + birthDate + "," + age + "," + numberOfPosts + "," +  postFrequency
                 + "," + postPercentage + "," + timeOnline + "," + timeInSecs + "," + reputation + "," + prestige
                 + "," + awards + "," + stars + "," + userPageLink  + "\n";
+
+
+        return fileText;
+
+    }
+
+    public String printToFileSEForums() {
+        String fileText = "";
+
+        fileText = userName + "," + country + "," + tenure + "," + reputation + "," + prestige + "," + awards + ", " + userPageLink  + "\n";
 
 
         return fileText;

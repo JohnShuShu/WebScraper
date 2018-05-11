@@ -1,6 +1,7 @@
 package stackexchange;
 
 import hackforums.Comment;
+import org.apache.xerces.impl.xpath.regex.Match;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.medhelp.Thread;
@@ -10,6 +11,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import sun.org.mozilla.javascript.internal.ast.SwitchCase;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -21,7 +23,7 @@ import java.util.regex.Pattern;
 import static hackforums.HackForums.scrapeThreads;
 import static hackforums.HackForums.scrapeUsers;
 
-public class SEForum extends Thread {
+public class SForum extends Thread {
 
     public static String dir = "/Users/johnshu/Desktop/WebScraper"; // General directory root **** Be sure to CHANGE *****
 
@@ -33,7 +35,11 @@ public class SEForum extends Thread {
 
     public static void main(String[] args)  throws Exception {
 
-        //        buildUserList();
+        //        List<User> userList1 = new ArrayList<User>();
+
+        //        scrapeUsers(userList1);
+
+        //    buildUserList();
 
         //        convertTimeToSecsArray();
 
@@ -46,8 +52,9 @@ public class SEForum extends Thread {
 
 
         ChromeDriver SEForumDriver = new ChromeDriver(chrome);
-//        SEForumDriver.navigate().to("https://security.stackexchange.com/search?tab=Votes&pagesize=50&q=ransomware");
-        SEForumDriver.navigate().to("https://stackexchange.com/search?q=ransomware&pagesize=50");
+        //        SEForumDriver.navigate().to("https://security.stackexchange.com/search?tab=Votes&pagesize=50&q=ransomware");
+//        SEForumDriver.navigate().to("https://stackexchange.com/search?q=ransomware&pagesize=15");
+        SEForumDriver.navigate().to("https://stackexchange.com/search?q=ransomware&page=98");
         SEForumDriver.switchTo();
 
 
@@ -115,7 +122,7 @@ public class SEForum extends Thread {
             // Extract number of threads on this page
             String totalThreadsStr = fullDoc.select("div.subheader.results-header > h2 "). first().text();
             String [] totalThreadsArr = totalThreadsStr.split(" ");
-//            totalThreadsStr.substring(0,3);
+            //            totalThreadsStr.substring(0,3);
             totalThreads = Integer.valueOf(totalThreadsArr[0].replace(",",""));
             //              totalThreads = Integer.valueOf(Pattern.compile("(\\d+) results").matcher(totalThreadsStr).group(1));
 
@@ -123,7 +130,7 @@ public class SEForum extends Thread {
             //                List<WebElement> commentPagesInfo = SEForumDriver.findElementsByClassName("question-summary");
             //                String commentPagesData = (String) ((JavascriptExecutor) SEForumDriver).executeScript("return arguments[0].innerHTML;", commentPagesInfo.get(0));
 
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("SEForums-" + dateString + ".csv"), "utf-8"));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("StackExchageForums-" + dateString + ".csv"), "utf-8"));
 
 
             // Writing the header to the file
@@ -132,7 +139,7 @@ public class SEForum extends Thread {
 
             do {
 
-                List<WebElement> threadsList = SEForumDriver.findElementsByClassName("question-summary");
+                List<WebElement> threadsList = SEForumDriver.findElementsByClassName("search-result");
 
                 System.out.println("        //************************************************* PAGE NUMBER " + pageNumber+ "*************************************************//\n");
 
@@ -142,7 +149,7 @@ public class SEForum extends Thread {
                     String nseUrl = (String) ((JavascriptExecutor) SEForumDriver).executeScript("return arguments[0].innerHTML;", threadHtml);
                     String Url = nseUrl.replaceAll("\\<!--.+?-->","").trim();
 
-//                                             System.out.println("\n" + Url);
+//                                                                 System.out.println("\n" + Url);
 
 
                     // Extract Thread Names
@@ -157,49 +164,67 @@ public class SEForum extends Thread {
 
 
                         // Extract Thread Names and Link
-
                         Document doc = Jsoup.parse(Url);
 
 
-                        Pattern threadNamePattern = Pattern.compile("<a href=\"(.+?)\" data-searchsession=\".+?\" title=\"(.+?)\">\n" +
-                                "Q:(.+?)<\\/a>");
+                        Pattern threadNamePattern = Pattern.compile("<span><a href=\"https:\\/\\/(.+?).com\\/questions\\/(.+?)\">(.+?)<\\/a><\\/span>");
                         Matcher matcher = threadNamePattern.matcher(Url);
                         matcher.find();
-                        String threadLink = matcher.group(1);
-                        String threadName = matcher.group(2).trim().replace("&quot;","\"");
-                        System.out.print(threadName + ", " + threadLink + ", ");
+                        String website = matcher.group(1);
+                        String threadLink = matcher.group(2);
+                        String threadName = matcher.group(3).trim().replace("&quot;","\"").replace("," ," ");
+                        String FullthreadLink = "https://" + website + ".com/questions/" + threadLink;
                         thread.setThreadName(threadName);
-                        thread.setThreadLink("https://security.stackexchange.com" + threadLink );
+                        thread.setThreadLink(FullthreadLink );
+                        System.out.print(website + ", " + threadName + ", " + FullthreadLink + ", ");
 
 
-                        // Extract Thread Date of Creation
-                        Pattern threadDatePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime\">.+?<\\/span>");
-                        matcher = threadDatePattern.matcher(Url);
+                        // Extract Thread Date of Creation Asked
+                        try {
+                            Pattern threadDatePattern = Pattern.compile("asked <span title=\"(.+?) .+?\" class=\"relativetime\">.+?<\\/span> on");
+                            matcher = threadDatePattern.matcher(Url);
+                            matcher.find();
+                            String threadDate = matcher.group(1);
+                            thread.setDateCreated(threadDate);
+                            System.out.print(thread.dateCreated + ", ");
+                        } catch (Exception e){
+//                            System.err.print("Caught Exception: " + "Ask Date not found ");
+
+                        }
+
+                        try {
+                            Pattern threadDatePattern = Pattern.compile("answered <span title=\"(.+?) .+?\" class=\"relativetime\">.+?<\\/span> on");
+                            matcher = threadDatePattern.matcher(Url);
+                            matcher.find();
+                            String threadDate = matcher.group(1);
+                            thread.setDateCreated(threadDate);
+                            System.out.print(thread.dateCreated + ", ");
+                        } catch (Exception e){
+//                            System.err.print("Caught Exception: " + "Answered Date not found ");
+
+                        }
+
+                        // Extract Thread Keywords
+                        Pattern threadKeywordsPattern = Pattern.compile("<div class=\"tags user-tags\">\n" +
+                                "(.+?)<\\/div>");
+                        matcher = threadKeywordsPattern.matcher(Url);
                         matcher.find();
-                        String threadDate = matcher.group(1);
-                        thread.setDateCreated(threadDate);
-                        System.out.print( thread.dateCreated + ", ");
-
-
-                        // Extract Thread Creator
-                        Pattern threadCreatorPattern = Pattern.compile("<a href=\"\\/users\\/(.+?)\">(.+?)<\\/a>");
-                        matcher = threadCreatorPattern.matcher(Url);
-                        matcher.find();
-                        user = new User(matcher.group(2).trim());
-                        user.setUserPageLink("https://security.stackexchange.com/users/" + matcher.group(1).trim());
-                        System.out.print(" " + user.userName  + ", " + user.userPageLink + " \n\n");
+                        String htmlKeywords = matcher.group(0).trim();
+                        String keywords = html2textV2(htmlKeywords);
+                        thread.setKeywords(keywords);
+                        System.out.print(keywords);
 
                         thread.setThreadCreator(user);
 
                         threadList.add(thread);
 
                         // Add user to list of users.
-                        if (!doesUserExist(userList, user)){
-                            userList.add(user);
-                        }
+                        //                        if (!doesUserExist(userList, user)){
+                        //                            userList.add(user);
+                        //                        }
                         //                            userList.add(user);
 
-                        writer.write(thread.printToFileLite());
+                        //writer.write(thread.printToFileLite());
 
 
                     } catch (Exception e) {
@@ -214,7 +239,7 @@ public class SEForum extends Thread {
                 // The first run in file "Threads1.csv" has data for all of the 29 pages. About 576 Threads
                 pageNumber++;
                 try {
-//                    SEForumDriver.navigate().to("https://security.stackexchange.com/search?page="+pageNumber+"&tab=Votes&q=ransomware");
+                    //                    SEForumDriver.navigate().to("https://security.stackexchange.com/search?page="+pageNumber+"&tab=Votes&q=ransomware");
                     SEForumDriver.navigate().to("https://stackexchange.com/search?q=ransomware&page="+pageNumber+"");
                     TimeUnit.SECONDS.sleep(20);
 
@@ -223,21 +248,21 @@ public class SEForum extends Thread {
                 }
 
                 //                }while(!(newSubjectElement.isEmpty()) ); // Set the number of Pages you want to crawl here. This Forum has about 29 pages crawlable.
-//            } while(pageNumber < 1  ); // Used to test Final Function
-                            } while(pageNumber < (totalThreads / 50) + 1 );
+            } while(pageNumber < 1  ); // Used to test Final Function
+//                        } while(pageNumber < (totalThreads / 15) + 1 );
 
 
             try {
                 threadFileText = fileTextHeading;
 
-                System.out.println("Writing thread data to the file ...\n");
+                System.out.println("\nWriting thread data to the file ...\n");
 
                 // Writing out data to file
-                writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("SEForumThread-" + dateString + ".csv"), "utf-8"));
+                writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("StackExchangeForumThread-" + dateString + ".csv"), "utf-8"));
 
                 for (Thread thread : threadList) {
 
-                    threadFileText = threadFileText + thread.printToFileLite();
+                    threadFileText = threadFileText + thread.printSEForumThreadsToFile();
 
                 }
 
@@ -281,45 +306,23 @@ public class SEForum extends Thread {
         userList = scrapeUsers(userList);
 
 
-        String fileHeading = "User_Name" + ","
-                + "Date_Joined" + ","
-                + "Birth_Date" + ","
-                + "Age" + ","
-                + "Posts_Count" + ","
-                + "Posts_Frequency"+ ","
-                + "Posts_Percentage"+ ","
-                + "Time_online"  + ","
-                + "Time_in_secs"  + ","
-                + "Reputation" + ","
-                + "Prestige" + ","
-                + "Awards" + ","
-                + "Stars" + ","
-                + "Profile_Page" + ","
-                + "Number_of_Comments"+ ","
-                + "Thread_Name"+ ","
-                + "Thread_Link"  + ","
-                + "Date_Created"  + ","
-                + "Thread_Creator" + ","
-                + "Comment_Type" + ","
-                + "Commentors" + ","
-                + "Comment_Date" + ","
-                + "Comment_Time" + ","
-                + "Comment_Text" + ","
-                + "\n";
+        fileTextHeading  = "ThreadName" + "," + "ThreadLink" + "," + "Date_Created" + "," + "Creator"
+                + "," + "Creator_Page" + "," + "Keywords" + "," + "Time_Active" + "," + "Times_Viewed" + "," + "Number_of_Comments" + "," + "Commentor" + "," +"Comments" + "\n";
+
 
         try {
 
             System.out.println("Writing Fully Detailed Thread data to the file ...\n");
 
-            threadFileText = fileHeading;
+            threadFileText = fileTextHeading;
 
             // Writing out data to file
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("HackForumFullyDetailedThread-" + dateString + ".csv"), "utf-8"));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("StackExchangeForumFullyDetailedThread-" + dateString + ".csv"), "utf-8"));
 
             for (Thread thread : threadList) {
 
                 try {
-                    threadFileText = threadFileText + thread.printFullyDetailedThread(userList);
+                    threadFileText = threadFileText + thread.printSEForumThreadsToFile();
                 }
                 catch (Exception e){
 
@@ -439,7 +442,7 @@ public class SEForum extends Thread {
 
         ChromeDriver SEForumDriver = new ChromeDriver(chrome);
         //                ChromeDriver SEForumDriver = new ChromeDriver();
-        SEForumDriver.navigate().to("https://security.stackexchange.com/search?tab=Votes&pagesize=50&q=ransomware");
+        SEForumDriver.navigate().to("https://stackexchange.com/search?q=ransomware&pagesize=50");
         SEForumDriver.switchTo();
 
 
@@ -447,7 +450,7 @@ public class SEForum extends Thread {
         String threadfileText = "";
 
         try {
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ThreadsSEForumDetails-" + dateString + ".csv"), "utf-8"));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ThreadsSForumDetails-" + dateString + ".csv"), "utf-8"));
 
             // Looping through all the threads already obtained to gather detailed data. "thread" is the individual thread that is handled during each loop iteration
             for(Thread thread: threadList) {
@@ -457,6 +460,7 @@ public class SEForum extends Thread {
                 List<Thread> subThreadsList = new ArrayList<Thread>();
                 List<User> threadCommentorsList = new ArrayList<User>();
                 List<Comment> commentsList = new ArrayList<Comment>();
+                User originalAuthor = new User();
 
                 System.out.println("\n\n********************************************************Thread " + threadList.indexOf(thread) + " of " + threadList.size()+"********************************************************\n");
 
@@ -466,7 +470,7 @@ public class SEForum extends Thread {
                     SEForumDriver.navigate().to(thread.threadLink);
 
                     try {
-                        TimeUnit.SECONDS.sleep(15);
+                        TimeUnit.SECONDS.sleep(15); //15
                     }catch (Exception e){
 
                     }
@@ -479,7 +483,7 @@ public class SEForum extends Thread {
 
                         try{
                             expandComment.click();
-                            TimeUnit.SECONDS.sleep(5);
+                            TimeUnit.SECONDS.sleep(5); //5
 
                         }catch (Exception e){
                             continue;
@@ -508,6 +512,37 @@ public class SEForum extends Thread {
                     // Instantiate list to save all the users who commented in this thread.
                     threadCommentorsList = new ArrayList<User>();
 
+                    Document fullDoc = Jsoup.parse(SEForumDriver.getPageSource());
+                    String questionData = fullDoc.getElementById("qinfo").text();
+                    String[] splits = questionData.split("asked | viewed | active");
+                    String timeActive="";
+
+
+                    if(splits[1].contains("year")) {
+                        if(splits[1].contains("month")) {
+                            String[] timeAsked = splits[1].replace("years", "").replace("year", "").replace("months", "").replace("month", "").replace("ago", "").split(",");
+                            timeActive = String.valueOf(Integer.valueOf(timeAsked[0].trim()) * 12 + Integer.valueOf(timeAsked[1].trim()));
+                        } else {
+                            String[] timeAsked = splits[1].replace("years", "").replace("year", "").replace("months", "").replace("month", "").replace("ago", "").split(",");
+                            timeActive = String.valueOf(Integer.valueOf(timeAsked[0].trim())* 12);
+                        }
+
+                    }else if(splits[1].contains("month")){
+
+                        String[] timeAsked = splits[1].replace("months","").replace("month","").replace("ago", "").split(",");
+                        timeActive = String.valueOf(Integer.valueOf(timeAsked[0].trim()));
+
+                    }else if(splits[1].contains("day")){
+                        String[] timeAsked = splits[1].replace("days","").replace("day", "").replace("ago", "").split(",");
+                        timeActive = String.valueOf(Integer.valueOf(timeAsked[0].trim())/30);
+
+                    }
+
+                    String timesViewed = splits[2].replace("times","").replace(",","").trim();
+
+                    thread.setTimeActive(timeActive);
+                    thread.setTimesViewed(timesViewed);
+                    System.out.print(timeActive + " months, " + timesViewed + " times, ");
 
                     for (WebElement commentHtml : commentData) {
 
@@ -515,7 +550,7 @@ public class SEForum extends Thread {
 
                             commentContent = (String) ((JavascriptExecutor) SEForumDriver).executeScript("return arguments[0].innerHTML;", commentHtml);
 
-                            //                                    System.out.println("commentContent: " + commentContent);
+                            //                                                                System.out.println("commentContent: " + commentContent);
 
                             // New user object
 
@@ -528,9 +563,24 @@ public class SEForum extends Thread {
                             User commentor = new User();
 
 
-                            // Extract Comment time and date
+
+                            // Extract Thread Creator
+                            if(subThreadCommentor.isEmpty()) {
+                                Pattern threadCreatorPattern = Pattern.compile("<div class=\"user-details\">\n" +
+                                        "        <a href=\"\\/users(.+?)\">(.+?)<\\/a>");
+                                Matcher matcher = threadCreatorPattern.matcher(commentContent);
+                                matcher.find();
+                                User user = new User(matcher.group(2).trim());
+                                user.setUserPageLink("https://security.stackexchange.com/users" + matcher.group(1).trim());
+                                System.out.print(user.userName + ", " + user.userPageLink + " \n\n");
+
+                                thread.setThreadCreator(user);
+                                subThreadCommentor.add(user);
+                            }
+
+                            // Extract Comment time and date Asked
                             try { // Two different patterns for the date and time. If the first one doesnt work the second part will do
-                                Pattern commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime.+?\">(.+?) at (.+?)<\\/span>");
+                                Pattern commentTimePattern = Pattern.compile("asked <span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
                                 Matcher matcher = commentTimePattern.matcher(commentContent);
                                 if(matcher.find()){
                                     String commentDate = matcher.group(1);
@@ -539,7 +589,33 @@ public class SEForum extends Thread {
                                     comment.setCommentTime(commentTime.trim());
                                     comment.setCommentDate(commentDate.trim());
                                 } else{
-                                    commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
+                                    commentTimePattern = Pattern.compile("asked <span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
+                                    matcher = commentTimePattern.matcher(commentContent);
+                                    if(matcher.find()){
+                                        String commentDate = matcher.group(1);
+                                        String commentTime = matcher.group(3);
+                                        System.out.print(commentTime.trim() + "\n" + commentDate.trim() + "\n");
+                                        comment.setCommentTime(commentTime.trim());
+                                        comment.setCommentDate(commentDate.trim());
+                                    }
+                                }
+
+                            } catch (Exception e){
+
+                            }
+
+                            // Extract Comment time and date Answered
+                            try { // Two different patterns for the date and time. If the first one doesnt work the second part will do
+                                Pattern commentTimePattern = Pattern.compile("answered <span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
+                                Matcher matcher = commentTimePattern.matcher(commentContent);
+                                if(matcher.find()){
+                                    String commentDate = matcher.group(1);
+                                    String commentTime = matcher.group(3);
+                                    System.out.print(commentTime.trim() + "\n" + commentDate.trim() + "\n");
+                                    comment.setCommentTime(commentTime.trim());
+                                    comment.setCommentDate(commentDate.trim());
+                                } else{
+                                    commentTimePattern = Pattern.compile("answered <span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
                                     matcher = commentTimePattern.matcher(commentContent);
                                     if(matcher.find()){
                                         String commentDate = matcher.group(1);
@@ -583,84 +659,100 @@ public class SEForum extends Thread {
                             comment.setCommentType("Question");
                             subCommentsList.add(new Comment(firstCommentContent, "", "", firstCommentor, ""));
 
+                            // Declare some variables to use.
+                            Matcher dataMatcher;
+                            Matcher completeMatcher;
+                            Matcher commentorMatcher;
+
+                            Pattern commentContentPattern;
+                            Pattern commentorNamesPattern;
+                            Pattern commentTimePattern;
+
+                            try {
+                                WebElement commentContents = commentHtml.findElement(By.className("comment-body"));
+                                String commentContentText = (String) ((JavascriptExecutor) SEForumDriver).executeScript("return arguments[0].innerHTML;", commentHtml);
+
+//                                System.out.println("commentContentText: " + commentContentText);
 
 
-                            WebElement commentContents = commentHtml.findElement(By.className("comment-body"));
-                            String commentContentText = (String) ((JavascriptExecutor) SEForumDriver).executeScript("return arguments[0].innerHTML;", commentHtml);
+                                //START Extract Comment body .......................
+                                commentContentPattern = Pattern.compile("<span class=\"comment-copy\">(.+?)<\\/span>");
+                                completeMatcher = commentContentPattern.matcher(commentContentText);
 
-//                            System.out.println("commentContentText: " + commentContentText);
+                                commentorNamesPattern = Pattern.compile("<a href=\"\\/users(.+?)\" title=\".+?\" class=\"comment-user\">(.+?)<\\/a>");
+                                commentorMatcher = commentorNamesPattern.matcher(commentContentText);
 
-
-                            //START Extract Comment body .......................
-                            Pattern commentContentPattern = Pattern.compile("<span class=\"comment-copy\">(.+?)<\\/span>");
-                            Matcher completeMatcher = commentContentPattern.matcher(commentContentText);
-
-                            Pattern commentorNamesPattern = Pattern.compile("<a href=\"\\/users(.+?)\" title=\".+?\" class=\"comment-user\">(.+?)<\\/a>");
-                            Matcher commentorMatcher = commentorNamesPattern.matcher(commentContentText);
-
-                            Pattern commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime.+?\">(.+?) at (.+?)<\\/span>");
-                            Matcher dataMatcher = commentTimePattern.matcher(commentContentText);
-
-                            while (completeMatcher.find() && commentorMatcher.find() && dataMatcher.find()) {
-                                comment = new Comment();
-                                String commentText = completeMatcher.group(1);
-                                commentText = html2textV2(commentText);
-                                System.out.print(commentText + "\n");
-
-                                comment.setComment(commentText);
-                                comment.setCommentType("Response");
-                                subCommentsList.add(comment);
-                                //                                    }
-
-                                // START Extract Commentors ............
-
-                                String commentorPage = "";
-                                String commentorName = "";
-//                                commentorMatcher.find();
-//                                    while (matcher.find()) {
-                                commentor = new User();
-                                commentorPage = commentorMatcher.group(1);
-                                commentorName = commentorMatcher.group(2);
-                                commentorName = html2textV2(commentorName);
-                                commentorPage = commentorPage.replace("amp;", "");
-                                System.out.print(commentorName.trim() + "\n" + "https://security.stackexchange.com/users" + commentorPage.trim() + "\n");
-                                commentor.setUserName(commentorName.trim()); // create a User Object
-                                commentor.setUserPageLink("https://security.stackexchange.com/users" + commentorPage.trim());
-                                comment.setCommentor(commentor); // Save the user object as the commentor
-                                subThreadCommentor.add(commentor);
-                                // END Extract Commentors ............
+                                commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime.+?\">(.+?) at (.+?)<\\/span>");
+                                dataMatcher = commentTimePattern.matcher(commentContentText);
 
 
-                                // START of Extract Comment time and date
-                                try { // Two different patterns for the date and time. If the first one doesnt work the second part will do
+                                while (completeMatcher.find() && commentorMatcher.find() && dataMatcher.find()) {
+                                    comment = new Comment();
+                                    String commentText = completeMatcher.group(1);
+                                    commentText = html2textV2(commentText);
+                                    System.out.print(commentText + "\n");
 
-//                                    if(dataMatcher.find()){
+                                    comment.setComment(commentText);
+                                    comment.setCommentType("Response");
+                                    subCommentsList.add(comment);
+                                    //                                    }
+
+                                    // START Extract Commentors ............
+
+                                    String commentorPage = "";
+                                    String commentorName = "";
+                                    //                                commentorMatcher.find();
+                                    //                                    while (matcher.find()) {
+                                    commentor = new User();
+                                    commentorPage = commentorMatcher.group(1);
+                                    commentorName = commentorMatcher.group(2);
+                                    commentorName = html2textV2(commentorName);
+                                    commentorPage = commentorPage.replace("amp;", "");
+                                    System.out.print(commentorName.trim() + "\n" + "https://security.stackexchange.com/users" + commentorPage.trim() + "\n");
+                                    commentor.setUserName(commentorName.trim()); // create a User Object
+                                    commentor.setUserPageLink("https://security.stackexchange.com/users" + commentorPage.trim());
+                                    comment.setCommentor(commentor); // Save the user object as the commentor
+                                    subThreadCommentor.add(commentor);
+                                    // END Extract Commentors ............
+
+
+                                    //
+
+                                    // START of Extract Comment time and date
+                                    try { // Two different patterns for the date and time. If the first one doesnt work the second part will do
+
+                                        //                                    if(dataMatcher.find()){
                                         String commentDate = dataMatcher.group(1);
                                         String commentTime = dataMatcher.group(3);
                                         System.out.print(commentTime.trim() + "\n" + commentDate.trim() + "\n");
                                         comment.setCommentTime(commentTime.trim());
                                         comment.setCommentDate(commentDate.trim());
-//                                    }
+                                        //                                    }
 
-                                } catch (Exception e){
+                                    } catch (Exception e){
 
-                                    commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
-                                    dataMatcher = commentTimePattern.matcher(commentContentText);
-                                    dataMatcher.find();
-//                                    if(dataMatcher.find()){
+                                        commentTimePattern = Pattern.compile("<span title=\"(.+?) .+?\" class=\"relativetime\">(.+?) at (.+?)<\\/span>");
+                                        dataMatcher = commentTimePattern.matcher(commentContentText);
+                                        dataMatcher.find();
+                                        //                                    if(dataMatcher.find()){
                                         String commentDate = dataMatcher.group(1);
                                         String commentTime = dataMatcher.group(3);
                                         System.out.print(commentTime.trim() + "\n" + commentDate.trim() + "\n");
                                         comment.setCommentTime(commentTime.trim());
                                         comment.setCommentDate(commentDate.trim());
-//                                    }
+                                        //                                    }
+
+                                    }
+                                    // END of Extract Comment time and date
 
                                 }
-                                // END of Extract Comment time and date
+                                //END Extract Comment body .......................
 
+
+                            }catch (Exception e){
+                                System.err.println("Caught Exception: " + e.getMessage());
+//                                continue;
                             }
-                            //END Extract Comment body .......................
-
 
 
 
@@ -711,6 +803,10 @@ public class SEForum extends Thread {
                 // Save list of commentors to this particluar thread
                 thread.setCommentors(threadCommentorsList);
 
+                originalAuthor = threadCommentorsList.get(0);
+
+                thread.setThreadCreator(originalAuthor);
+
                 writer.write(thread.printSEForumThreadsToFile());
 
             }
@@ -729,9 +825,9 @@ public class SEForum extends Thread {
             // Writing out data to file
 
             String fileTextHeading = "ThreadName" + "," + "ThreadLink" + "," + "Date_Created" + "," + "Creator"
-                    + "," + "Creator_Page" + "," + "Number_of_Comments" + "," + "Date" + "," + "Time" + "," +"Comments" + "\n";
+                    + "," + "Creator_Page" + "," + "Keywords" + "," + "Time_Active" + "," + "Times_Viewed" + "," + "Number_of_Comments" + "," + "Commentor" + "," +"Comments" + "\n";
 
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ThreadsSEForumDetailsFinal-" + dateString + ".csv"), "utf-8"));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ThreadsSForumDetailsFinal-" + dateString + ".csv"), "utf-8"));
 
             threadfileText = threadfileText + fileTextHeading;
 
@@ -769,55 +865,31 @@ public class SEForum extends Thread {
         chrome.addExtensions(addonpath);
 
 
-        ChromeDriver hackForumDriver = new ChromeDriver(chrome);
-        hackForumDriver.navigate().to("https://hackforums.net/member.php?action=login");
-        hackForumDriver.switchTo();
+        ChromeDriver SEForumDriver = new ChromeDriver(chrome);
+//        SEForumDriver.navigate().to("https://hackforums.net/member.php?action=login");
+//        SEForumDriver.switchTo();
 
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        }catch (Exception e){
+//        HashMap<String, List> map = createUserListFromFile("/Users/johnshu/Desktop/WebScraper/StackExchangeUserDetails.csv");
 
-        }
-
-        WebElement username = hackForumDriver.findElementByName("username");
-        WebElement password = hackForumDriver.findElementByName("password");
-
-        username.sendKeys ("shujohns@gmail.com");
-        password.sendKeys("MotDePasse2017!");
-        hackForumDriver.findElementByName("submit").click();
-
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        }catch (Exception e){
-
-        }
+//        userList = map.get("userList");
 
         try{
 
-            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("HackForumUsersComplete-" + dateString + ".csv"), "utf-8"));
+            Writer writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("StackExchangeForumUsersComplete-" + dateString + ".csv"), "utf-8"));
 
-
-            String fileHeading = "User Name" + "," + "Date Joined" + "," + "Birth Date" + "," + "Age" + "," + "Posts Count" + "," + "Posts Frequency"
-                    + "," + "Posts Percentage"+ "," + "Time online"  + "," + "Reputation" + "," + "Prestige"
-                    + "," + "Awards" + "," + "Stars" + "," + "Profile Page" + "\n";
+            String fileHeading = "User_Name" + "," + "Country" + "," + "Tenure" + "," + "Reputation" + "," + "Prestige" + "," + "Awards" + "," + "Profile Page" + "\n";
 
 
             // File String to save to file object
             String userFileText = "";
             String userName = "";
-            String dateJoined = "";
-            String birthDate = "";
-            String numberOfPosts = "";
-            String postFrequency = "";
-            String postPercentage = "";
-            String timeOnline = "";
+            String tenure = "";
             String reputation = "";
-            String prestige = "";
-            String reportedPosts = "";
+            String reach = "";
             String awards = "";
             String userPageLink = "";
-            Integer stars = 0;
-            Integer age = 0;
+            String stars = "";
+            String country = "";
 
 
 
@@ -852,142 +924,69 @@ public class SEForum extends Thread {
 
 
                     // Go to the Thread Page itself and collect data on the comments left on the page.
-                    hackForumDriver.navigate().to(user.userPageLink);
+                    SEForumDriver.navigate().to(user.userPageLink);
 
+                    Document fullDoc = Jsoup.parse(SEForumDriver.getPageSource());
+                    String userData = fullDoc.getElementsByClass("list-unstyled").text();
+                    System.out.println(userData);
+
+                    String[] data = userData.split("Member for | Last");
+
+                    country = "missing"; //Default condition
+                    if(!(data[0].isEmpty())) {
+                        String[] countryArray = data[0].split(" ");
+                        country = countryArray[0] + " " + countryArray[1];
+                        System.out.println(country.replace(",",""));
+                        user.setCountry(country.replace(",",""));
+                    }
+
+                    String tenureData = data[1].substring(0, 17);
+
+                    if(tenureData.contains("year")) {
+                        if(tenureData.contains("month")) {
+                            String[] timeAsked = tenureData.replace(",","").split(" ");
+                            tenure = String.valueOf(Integer.valueOf(timeAsked[0].trim()) * 12 + Integer.valueOf(timeAsked[2].trim()));
+                        } else {
+                            String[] timeAsked = data[1].split(" ");
+                            tenure = String.valueOf(Integer.valueOf(timeAsked[0].trim())* 12);
+                        }
+
+                    }else if(tenureData.contains("month")){
+                        String[] timeAsked = tenureData.split(" ");
+                        tenure = String.valueOf(Integer.valueOf(timeAsked[0].trim()));
+
+                    }else if(tenureData.contains("day")){
+                        String[] timeAsked = data[1].split(" ");
+                        tenure = String.valueOf(Integer.valueOf(timeAsked[0].trim())/30);
+
+                    }
+
+                    System.out.println(tenure);
+                    user.setTenure(tenure);
 
                     // Gathering data on comments for this particular thread
-                    List<WebElement> userData = hackForumDriver.findElements(By.xpath("//div[contains(@class, 'quick_keys')]"));
+                    SEForumDriver.navigate().to(user.userPageLink.toString() + "?tab=topactivity");
 
-                    String userVariableInfo = (String) ((JavascriptExecutor) hackForumDriver).executeScript("return arguments[0].innerHTML;", userData.get(0));
-                    //                        System.out.println(userVariableInfo);
+                    fullDoc = Jsoup.parse(SEForumDriver.getPageSource());
+                    reputation = fullDoc.getElementsByClass("g-col fl-none -rep").text();
+                    System.out.println(reputation);
+                    user.setReputation(reputation);
 
-                    // Count number of stars
-                    stars = userVariableInfo.length() - userVariableInfo.replace("*", "").length();
-                    user.setStars(stars.toString().replace(",",""));
-
-                    userVariableInfo = html2text(userVariableInfo);
-                    //                        System.out.println(userVariableInfo);
-
-
-                    // Extracting user Registration Date.
-                    Pattern userRegDatePattern = Pattern.compile("Registration Date:\\s(.+?)\\s");
-                    Matcher matcher = userRegDatePattern.matcher(userVariableInfo);
-                    matcher.find();
-                    dateJoined = matcher.group(1);
-                    System.out.println("dateJoined: " + dateJoined);
-                    user.setDateJoined(dateJoined);
-
-
-                    try {
-                        // Extracting user DOB.
-                        Pattern userBirthDatePattern = Pattern.compile("Date of Birth:\\s(.+?)\\s\\((.+?)\\)\\s");
-                        matcher = userBirthDatePattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            birthDate = matcher.group(1);
-                            String dob[] = matcher.group(2).split(" ", 2);
-                            age = Integer.valueOf(dob[0].replace(",",""));
-                            System.out.println("BirthDate: " + birthDate);
-                            System.out.println("age: " + age);
-                            user.setBirthDate(birthDate.replace(",",""));
-                            user.setAge(age);
+                    awards = fullDoc.getElementsByClass("g-row _gutters ai-start fl-none -row-first").text();
+                    if(awards.length()>2) {
+                        Integer total=0;
+                        String[] awardsData = awards.split(" ");
+                        for(String awardArrVal: awardsData){
+                            total = total + Integer.valueOf(awardArrVal);
                         }
+                        awards = String.valueOf(total);
                     }
-                    catch (Exception e) {
+                    System.out.println(awards);
+                    user.setAwards(awards);
 
-                    }
-
-
-
-                    try{
-
-                        // Extracting Total Posts.
-                        Pattern userNumberPostsPattern = Pattern.compile("Total Posts:\\s(.+?)\\s\\((.+?)\\)");
-                        matcher = userNumberPostsPattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            numberOfPosts = matcher.group(1);
-                            String posts[] = matcher.group(2).split(" ", 10);
-                            postFrequency = posts[0].replace("(","").trim();
-                            postPercentage = posts[5].trim();
-
-                            System.out.println("numberOfPosts: " + numberOfPosts);
-                            System.out.println("postFrequency: " + postFrequency);
-                            System.out.println("postPercentage: " + postPercentage);
-
-                            user.setNumberOfPosts(Integer.valueOf(numberOfPosts.replace(",","")));
-                            user.setPostFrequency(Double.valueOf(postFrequency.replace(",","")));
-                            user.setPostPercentage(Double.valueOf(postPercentage.replace(",","")));
-
-                        }
-                    }
-                    catch (Exception e) {
-
-                    }
-
-
-                    try {
-                        // Extracting user time spent online.
-                        Pattern userTimeOnlinePattern = Pattern.compile("Time Spent Online: (.+? Seconds)");
-                        matcher = userTimeOnlinePattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            timeOnline = matcher.group(1);
-                            String timeInSecs = convertTimeToSecs(timeOnline);
-                            System.out.println("TimeOnline: " + timeOnline.trim() + " Time in Secs: " + timeInSecs);
-                            user.setTimeOnline(timeOnline.replace(",",""));
-                            user.setTimeInSecs(timeInSecs.replace(",",""));
-                        }
-                    }
-                    catch (Exception e) {
-
-                    }
-
-                    try {
-                        // Extracting user reputation.
-                        Pattern userReputationPattern = Pattern.compile("Reputation: (.\\d*)");
-                        matcher = userReputationPattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            reputation = matcher.group(1);
-                            System.out.println("Reputation: " + reputation.trim());
-                            user.setReputation(reputation.trim().replace(",",""));
-                        }
-                    }
-                    catch (Exception e) {
-
-                    }
-
-                    try {
-                        // Extracting user prestige.
-                        user.setPrestige("null");
-                        Pattern userPrestigePattern = Pattern.compile("Prestige: (\\d*)");
-                        matcher = userPrestigePattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            prestige = matcher.group(1);
-                            System.out.println("Prestige: " + prestige.trim());
-                            user.setPrestige(prestige.trim().replace(",",""));
-                        }
-                    }
-                    catch (Exception e) {
-
-                    }
-
-                    try {
-                        // Extracting user Awards.
-                        Pattern userAwardsPattern = Pattern.compile("Awards: (\\d*)");
-                        matcher = userAwardsPattern.matcher(userVariableInfo);
-                        matcher.find();
-                        if (!(matcher.group(1).isEmpty())) {
-                            awards = matcher.group(1);
-                            System.out.println("Awards: " + awards.trim());
-                            user.setAwards(awards.trim().replace(",",""));
-                        }
-                    }
-                    catch (Exception e) {
-
-                    }
+                    reach = fullDoc.getElementsByClass("g-col -reach-number").text().replace("~","");
+                    System.out.println(reach);
+                    user.setPrestige(reach.replace("~",""));
 
                 }catch (Exception e) {
                     System.err.println("Caught Exception: " + e.getMessage());
@@ -995,7 +994,7 @@ public class SEForum extends Thread {
                     e.printStackTrace();
                 }
 
-                System.out.println(fileHeading + user.printToFileHackForums());
+                System.out.println(user.printToFileSEForums());
 
             }
 
@@ -1008,7 +1007,7 @@ public class SEForum extends Thread {
                 // Writing out data to file
 
                 for(User user: completeUsersList){
-                    userFileText = userFileText + user.printToFileHackForums();
+                    userFileText = userFileText + user.printToFileSEForums();
                 }
 
                 System.out.println(userFileText);
@@ -1026,8 +1025,8 @@ public class SEForum extends Thread {
 
         }
 
-        hackForumDriver.close();
-        hackForumDriver.quit();
+        SEForumDriver.close();
+        SEForumDriver.quit();
 
         return userList;
     }
@@ -1081,6 +1080,7 @@ public class SEForum extends Thread {
                         }
 
                         threadList.add(thread);
+
                     }
                 }catch (Exception e){
                     e.printStackTrace();
@@ -1498,7 +1498,10 @@ public class SEForum extends Thread {
 
 
     public static String html2textV2(String html) {
-        return html.replaceAll("\\<.*?\\>", "");
+        return html.replaceAll("\\<.*?\\>", "")
+                   .replaceAll("\r","")
+                   .replaceAll("\n","")
+                   .trim();
         //        return Jsoup.parse(html).text();
     }
 

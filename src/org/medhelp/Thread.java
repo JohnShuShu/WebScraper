@@ -18,6 +18,7 @@ public class Thread {
 
 
     public String threadName;
+    public String threadSubPost;
     public String threadLink;
     public String dateCreated;
     public User threadCreator;
@@ -27,6 +28,15 @@ public class Thread {
     public Integer commentsNumber;
     public Integer threadNumber;
     public Integer threadPageNumber;
+    public List<Thread> subThread;
+    public String keywords;
+    public String timeActive;
+    public String timesViewed;
+
+
+    public Thread(){
+
+    }
 
 
     public List<Comment> getCommentList() {
@@ -134,6 +144,47 @@ public class Thread {
         this.dateCreated = dateCreated;
     }
 
+    public String getThreadSubPost() {
+        return threadSubPost;
+    }
+
+    public void setThreadSubPost(String threadSubPost) {
+        this.threadSubPost = threadSubPost;
+    }
+
+    public void setSubThread(List<Thread> subThread) {
+        this.subThread = subThread;
+    }
+
+    public List<Thread> getSubThread() {
+        return subThread;
+    }
+
+    public String getKeywords() {
+        return keywords;
+    }
+
+    public void setKeywords(String keywords) {
+        this.keywords = keywords;
+    }
+
+
+    public String getTimeActive() {
+        return timeActive;
+    }
+
+    public void setTimeActive(String timeActive) {
+        this.timeActive = timeActive;
+    }
+
+    public String getTimesViewed() {
+        return timesViewed;
+    }
+
+    public void setTimesViewed(String timesViewed) {
+        this.timesViewed = timesViewed;
+    }
+
 
     @Override
     public String toString() {
@@ -154,6 +205,7 @@ public class Thread {
         String fileText = "";
 
         fileText = fileText + "\"" + threadName+ "\"" + ", " +
+                "\"" + threadSubPost+ "\"" + ", " +
                 "\"" + threadLink+ "\"" + ", " +
                 "\"" + dateCreated+ "\"" + ", " +
                 "\"" + threadCreator+ "\"" + ", " +
@@ -172,6 +224,7 @@ public class Thread {
         String fileText = "";
 
         fileText = fileText + threadName.replace(",","")  + "," +
+                  threadSubPost.replace(",","")  + "," +
                   threadLink+ "," +
                   dateCreated.replace(",","")+ "," +
                   threadCreator.userName.replace(",","")+ "," +
@@ -190,6 +243,7 @@ public class Thread {
         String fileText = "";
 
         fileText = fileText + threadName.replace(",","")  + "," +
+                threadSubPost.replace(",","")  + "," +
                 threadLink+ "," +
                 dateCreated.replace(",","")+ "," +
                 threadCreator.userName.replace(",","")+ "," +
@@ -205,16 +259,71 @@ public class Thread {
     public String printHackForumThreadsToFile() {
         String fileText = "";
 
-        fileText = fileText + threadName.replace(",","")  + "," +
-                threadLink+ "," +
-                dateCreated.replace(",","")+ "," +
-                threadCreator.userName.replace(",","")+ "," +
-                threadCreatorLink+  "," +
+        fileText = fileText + threadName.replace(",","")  + " ," +
+                threadSubPost.replace(",","")  + " ," +
+                threadLink+ " ," +
+                dateCreated.replace(",","")+ " ," +
+                threadCreator.userName.replace(",","")+ " ," +
+                threadCreatorLink+  " ," +
                 commentList.size() + ",\n" +
                 printHackForumCommentors()+ "\n\n";
 
         return fileText;
 
+    }
+
+    public String printSEForumThreadsToFile(){
+        String fileText = "";
+        String tempText = "";
+        String commentorsList = "";
+
+
+        tempText = threadName.replace(",","")  + "," +
+                threadLink+ " ," +
+                dateCreated.replace(",","")+ "," +
+                threadCreator.userName.replace(",","")+ "," +
+                threadCreator.userPageLink+  "," +
+                keywords + "," +
+                timeActive + "," +
+                timesViewed + "," +
+                commentList.size();
+
+                try{
+                    if (commentList == null){
+                        commentorsList= "";
+                    } else {
+                        for(Comment comment: commentList){
+                            fileText = fileText + tempText + "," + comment.getCommentor().getUserName() + "," +  comment.getComment().replace(",",";").replace("\n", " ") + "\n";
+                        }
+                        //return commentorsList;
+                    }
+                } catch (Exception e) {
+                    System.err.println("Caught Exception: " + e.getMessage());
+                }
+
+
+//        System.out.println(fileText);
+
+        return fileText;
+    }
+
+    public String printSEForumCommentors(){
+        String commentorsList = "";
+
+        try{
+            if (commentList == null){
+                commentorsList= "";
+            } else {
+                for(Comment comment: commentList){
+                    commentorsList = commentorsList + ",,,,,,," + comment.getCommentor().getUserName() + "," +  comment.getComment().replace(",",";").replace("\n", " ") + "\n";
+                }
+                return commentorsList;
+            }
+        } catch (Exception e) {
+            System.err.println("Caught Exception: " + e.getMessage());
+        }
+
+        return commentorsList;
     }
 
     public String printHackForumCommentors(){
@@ -239,10 +348,10 @@ public class Thread {
     public String printToFileLite() {
         String fileText = "";
 
-        fileText = fileText + threadName.replace(",","")  + "," +
-                threadLink+ "," +
-                threadCreator.userName.replace(",","")+ "," +
-                threadCreator.userPageLink+  "," + "\n";
+        fileText = fileText + threadName.replace(",","")  + ", " +
+                threadLink+ " , " +
+                threadCreator.userName.replace(",","")+ " , " +
+                threadCreator.userPageLink+  " , " + "\n";
 
         return fileText;
 

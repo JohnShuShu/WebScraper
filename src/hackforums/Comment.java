@@ -10,6 +10,7 @@ import java.util.List;
 public class Comment {
 
     public String comment;
+    public String commentTitle;
     public String commentDate;
     public String commentTime;
     public User commentor;
